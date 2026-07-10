@@ -251,12 +251,38 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
 </div>
 </div>
 
+<!-- APPLICATION VIEW MODAL (read-only) -->
+<div class="overlay" id="appViewOverlay">
+  <div class="modal">
+    <button class="close" data-close="appViewOverlay">&times;</button>
+    <div id="view_stage_badge" style="margin-bottom:8px;"></div>
+    <h2 id="view_role" style="margin-bottom:2px;"></h2>
+    <div id="view_company" class="item-sub" style="font-size:14px;margin-bottom:12px;"></div>
+    <div id="view_link"></div>
+    <div class="linked-list" id="view_fields"></div>
+    <div class="item-sub" id="view_notes" style="margin-top:12px;white-space:pre-wrap;color:var(--ink);"></div>
+    <div id="view_materials"></div>
+    <div class="modal-actions">
+      <button class="btn ghost" id="viewDeleteBtn">Delete</button>
+      <button class="btn" id="viewEditBtn">Edit</button>
+    </div>
+  </div>
+</div>
+
 <!-- APPLICATION MODAL -->
 <div class="overlay" id="appOverlay">
   <div class="modal">
     <button class="close" data-close="appOverlay">&times;</button>
     <h2 id="appModalTitle">New application</h2>
     <div id="appLinkDisplay" style="margin:-6px 0 14px;"></div>
+    <div class="capture" style="margin-bottom:16px;">
+      <div class="capture-label">Paste listing text</div>
+      <textarea id="modalCaptureInput" placeholder="Paste the full job posting text here to auto-fill the fields below..."></textarea>
+      <div class="capture-row">
+        <span class="capture-hint" id="modalCaptureHint">Uses your Claude API key (Sources → Settings).</span>
+        <button class="btn small" id="modalCaptureBtn">Parse &amp; fill</button>
+      </div>
+    </div>
     <input type="hidden" id="appId">
     <div class="field-row"><div class="field"><label>Role</label><input id="f_role"></div><div class="field"><label>Company</label><input id="f_company"></div></div>
     <div class="field-row"><div class="field"><label>Location</label><input id="f_location"></div><div class="field"><label>Pay range</label><input id="f_salary" placeholder="e.g. $55-65k"></div></div>
@@ -460,7 +486,7 @@ function renderDesk(){
       </div>`;
     }).join('');
     setupDragDrop();
-    boardWrap.querySelectorAll('.card').forEach(c=>c.addEventListener('click',()=>openAppModal(c.dataset.id)));
+    boardWrap.querySelectorAll('.card').forEach(c=>c.addEventListener('click',()=>openAppView(c.dataset.id)));
   } else {
     boardWrap.style.display='none'; listWrap.style.display='block';
     if(DB.apps.length===0){ listWrap.innerHTML = `<div class="empty"><b>Nothing on the desk yet</b>Drop in a role you're eyeing, or paste one in above.</div>`; return; }
@@ -471,7 +497,7 @@ function renderDesk(){
         <td><span class="stage-pill" style="background:${STAGE_COLORS[a.stage]}">${STAGES[a.stage]}</span></td>
         <td>${a.deadline||'—'}</td><td>${esc(a.nextAction||'—')}</td>
       </tr>`).join('')}</table>`;
-    listWrap.querySelectorAll('.row').forEach(r=>r.addEventListener('click',()=>openAppModal(r.dataset.id)));
+    listWrap.querySelectorAll('.row').forEach(r=>r.addEventListener('click',()=>openAppView(r.dataset.id)));
   }
 }
 function cardHTML(a){
@@ -496,6 +522,70 @@ function setupDragDrop(){
 }
 document.getElementById('btnBoard').addEventListener('click', ()=>{ viewMode='board'; document.getElementById('btnBoard').classList.add('on'); document.getElementById('btnList').classList.remove('on'); renderDesk(); });
 document.getElementById('btnList').addEventListener('click', ()=>{ viewMode='list'; document.getElementById('btnList').classList.add('on'); document.getElementById('btnBoard').classList.remove('on'); renderDesk(); });
+
+/* ---------------- APPLICATION VIEW (read-only) ---------------- */
+let currentViewAppId = null;
+function openAppView(id){
+  const a = DB.apps.find(x=>x.id===id);
+  if(!a) return;
+  currentViewAppId = id;
+  document.getElementById('view_stage_badge').innerHTML = `<span class="stage-pill" style="background:${STAGE_COLORS[a.stage]}">${STAGES[a.stage]}</span>`;
+  document.getElementById('view_role').textContent = a.role;
+  document.getElementById('view_company').textContent = a.company + (a.location? ' · '+a.location : '');
+  document.getElementById('view_link').innerHTML = a.link? `<a href="${esc(a.link)}" target="_blank" rel="noopener" class="tag" style="display:inline-flex;padding:6px 10px;text-decoration:none;margin-bottom:12px;">View posting ↗</a>` : '';
+  const contact = DB.contacts.find(c=>c.id===a.contactId);
+  const rows = [];
+  if(a.salary) rows.push(['Pay range', a.salary]);
+  if(a.deadline){ const d=daysUntil(a.deadline); rows.push(['Deadline', a.deadline + (d!==null? ` (${d>=0? d+'d left':'past due'})`:'')]); }
+  if(contact) rows.push(['Source', contact.name]);
+  if(a.nextAction) rows.push(['Next action', a.nextAction]);
+  document.getElementById('view_fields').innerHTML = rows.map(([l,v])=>`<div class="linked-row"><span style="color:var(--ink-dim);">${esc(l)}</span><span>${esc(v)}</span></div>`).join('');
+  const notesEl = document.getElementById('view_notes');
+  notesEl.textContent = a.notes || '';
+  notesEl.style.display = a.notes? 'block':'none';
+  renderViewMaterials(id);
+  document.getElementById('appViewOverlay').classList.add('active');
+}
+function renderViewMaterials(appId){
+  const wrap = document.getElementById('view_materials');
+  const mats = DB.materials.filter(m=>m.linkedAppId===appId);
+  wrap.innerHTML = `<label style="display:block;font-family:'IBM Plex Mono';font-size:10px;letter-spacing:0.5px;text-transform:uppercase;color:var(--ink-dim);margin:16px 0 6px;">Materials</label>` +
+    (mats.length? `<div class="linked-list">${mats.map(m=>`
+      <div class="linked-row"><span>${esc(m.title||'(untitled)')} <span class="tag">${m.type}</span></span>${m.link? `<a href="${esc(m.link)}" target="_blank" rel="noopener">Open ↗</a>`:''}</div>`).join('')}</div>`
+      : `<div style="font-size:12px;color:var(--ink-dim);">None linked yet.</div>`) +
+    `<button class="btn small" id="viewAddMaterialBtn" style="margin-top:8px;">+ Link material</button>`;
+  document.getElementById('viewAddMaterialBtn').addEventListener('click', ()=>{
+    document.getElementById('appViewOverlay').classList.remove('active');
+    openMaterialModal(null, appId);
+  });
+}
+document.getElementById('viewEditBtn').addEventListener('click', ()=>{
+  document.getElementById('appViewOverlay').classList.remove('active');
+  openAppModal(currentViewAppId);
+});
+document.getElementById('viewDeleteBtn').addEventListener('click', async ()=>{
+  if(!confirm('Delete this application?')) return;
+  await db.collection('users').doc(uid).collection('applications').doc(currentViewAppId).delete();
+  document.getElementById('appViewOverlay').classList.remove('active');
+});
+
+/* ---------------- LISTING PARSER (shared) ---------------- */
+async function parseListingText(raw){
+  if(!settings.apiKey) throw new Error('NO_KEY');
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method:'POST',
+    headers:{'Content-Type':'application/json','x-api-key': settings.apiKey, 'anthropic-version':'2023-06-01', 'anthropic-dangerous-direct-browser-access':'true'},
+    body: JSON.stringify({
+      model:'claude-sonnet-4-6', max_tokens:1000,
+      messages:[{role:'user', content:
+        `Extract job application details from this pasted text. Respond ONLY with raw JSON, no markdown fences, no preamble. Shape: {"role":"","company":"","location":"","salary":"","link":"","deadline":"","nextAction":""}. Use "" for anything missing. Deadline must be YYYY-MM-DD or "". Text:\n\n${raw}`
+      }]
+    })
+  });
+  const data = await response.json();
+  const text = data.content.map(b=>b.text||'').join('').trim().replace(/^```json|```$/g,'').trim();
+  return JSON.parse(text);
+}
 
 /* ---------------- APPLICATION MODAL ---------------- */
 function populateSelects(){
@@ -585,17 +675,18 @@ function renderMaterials(){
 function populateMaterialSelects(){
   document.getElementById('m_app').innerHTML = '<option value="">— none —</option>' + DB.apps.map(a=>`<option value="${a.id}">${esc(a.role)} @ ${esc(a.company)}</option>`).join('');
 }
-function openMaterialModal(id){
+function openMaterialModal(id, prefillAppId){
   populateMaterialSelects();
   const isEdit = !!id;
   document.getElementById('materialModalTitle').textContent = isEdit?'Edit material':'New material';
   document.getElementById('deleteMaterialBtn').style.display = isEdit?'inline-flex':'none';
-  const m = isEdit? DB.materials.find(x=>x.id===id) : {type: materialsTab};
+  const m = isEdit? DB.materials.find(x=>x.id===id) : {type: materialsTab, linkedAppId: prefillAppId||''};
   document.getElementById('m_id').value = id||'';
   document.getElementById('m_type').value = m.type||materialsTab;
   document.getElementById('m_title').value = m.title||'';
   document.getElementById('m_app').value = m.linkedAppId||'';
-  document.getElementById('m_company').value = m.company||'';
+  const linkedApp = DB.apps.find(a=>a.id===m.linkedAppId);
+  document.getElementById('m_company').value = m.company || (linkedApp? linkedApp.company : '');
   document.getElementById('m_link').value = m.link||'';
   document.getElementById('m_content').value = m.content||'';
   document.getElementById('materialOverlay').classList.add('active');
@@ -762,7 +853,7 @@ function renderInboxList(){
 }
 document.getElementById('reviewInboxBtn').addEventListener('click', renderInboxList);
 
-/* ---------------- QUICK CAPTURE ---------------- */
+/* ---------------- QUICK CAPTURE (Desk) ---------------- */
 document.getElementById('captureBtn').addEventListener('click', async ()=>{
   const raw = document.getElementById('captureInput').value.trim();
   const hint = document.getElementById('captureHint');
@@ -770,24 +861,36 @@ document.getElementById('captureBtn').addEventListener('click', async ()=>{
   if(!settings.apiKey){ hint.textContent = 'Add your Anthropic API key in Sources → Settings first.'; return; }
   hint.textContent = 'Reading...';
   try{
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key': settings.apiKey, 'anthropic-version':'2023-06-01', 'anthropic-dangerous-direct-browser-access':'true'},
-      body: JSON.stringify({
-        model:'claude-sonnet-4-6', max_tokens:1000,
-        messages:[{role:'user', content:
-          `Extract job application details from this pasted text. Respond ONLY with raw JSON, no markdown fences, no preamble. Shape: {"role":"","company":"","location":"","salary":"","link":"","deadline":"","nextAction":""}. Use "" for anything missing. Deadline must be YYYY-MM-DD or "". Text:\n\n${raw}`
-        }]
-      })
-    });
-    const data = await response.json();
-    const text = data.content.map(b=>b.text||'').join('').trim().replace(/^```json|```$/g,'').trim();
-    const parsed = JSON.parse(text);
+    const parsed = await parseListingText(raw);
     document.getElementById('captureInput').value = '';
     hint.textContent = "Uses your Claude API key (set it in Sources → Settings) to pull out the details.";
     openAppModal(null, parsed);
   }catch(e){
     hint.textContent = "Couldn't parse that — add it manually below.";
+    console.error(e);
+  }
+});
+
+/* ---------------- QUICK CAPTURE (inside the application modal) ---------------- */
+document.getElementById('modalCaptureBtn').addEventListener('click', async ()=>{
+  const raw = document.getElementById('modalCaptureInput').value.trim();
+  const hint = document.getElementById('modalCaptureHint');
+  if(!raw) return;
+  if(!settings.apiKey){ hint.textContent = 'Add your Anthropic API key in Sources → Settings first.'; return; }
+  hint.textContent = 'Reading...';
+  try{
+    const parsed = await parseListingText(raw);
+    if(parsed.role) document.getElementById('f_role').value = parsed.role;
+    if(parsed.company) document.getElementById('f_company').value = parsed.company;
+    if(parsed.location) document.getElementById('f_location').value = parsed.location;
+    if(parsed.salary) document.getElementById('f_salary').value = parsed.salary;
+    if(parsed.link) document.getElementById('f_link').value = parsed.link;
+    if(parsed.deadline) document.getElementById('f_deadline').value = parsed.deadline;
+    if(parsed.nextAction) document.getElementById('f_next').value = parsed.nextAction;
+    document.getElementById('modalCaptureInput').value = '';
+    hint.textContent = 'Filled in from the listing — check it over before saving.';
+  }catch(e){
+    hint.textContent = "Couldn't parse that — fill in the fields manually.";
     console.error(e);
   }
 });
