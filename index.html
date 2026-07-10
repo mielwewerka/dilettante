@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dilettante</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Fredoka:wght@500;600&family=Space+Grotesk:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<!-- ===================== FIREBASE SETUP =====================
+1. Create a project at https://console.firebase.google.com
+2. Build > Firestore Database > Create database (production mode, any region)
+3. Build > Authentication > Sign-in method > enable "Email/Password"
+4. Authentication > Users > Add user > create the one account you'll log in with
+5. Firestore > Rules, paste the ruleset from SETUP.md
+6. Project settings (gear icon) > General > scroll to "Your apps" > Web app (</>) > copy the config object
+7. Paste that config into firebaseConfig below
+=========================================================== -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<style>
+:root{
+  --paper:#F6F1E6;
+  --paper-raised:#FFFFFF;
+  --ink:#191510;
+  --ink-dim:#726A5C;
+  --magenta:#D6236A;
+  --magenta-deep:#A81352;
+  --mustard:#E8AE33;
+  --olive:#767A3D;
+  --dustyblue:#5E8CA3;
+  --brick:#B23A2E;
+  --line:#191510;
+  --radius:2px;
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:'Space Grotesk',sans-serif;min-height:100vh;}
+::selection{background:var(--magenta);color:#fff;}
+:focus-visible{outline:2px solid var(--magenta-deep);outline-offset:2px;}
+button{font-family:inherit;cursor:pointer;}
+
+.dots{background-image:radial-gradient(var(--ink) 1px, transparent 1.4px);background-size:9px 9px;}
+.dots-mustard{background-image:radial-gradient(var(--mustard) 1.6px, transparent 1.8px);background-size:9px 9px;}
+
+/* ---------- LOGIN GATE ---------- */
+#loginGate{position:fixed;inset:0;background:var(--paper);display:flex;align-items:center;justify-content:center;z-index:200;}
+.login-box{background:var(--paper-raised);border:2px solid var(--ink);padding:32px 34px;width:340px;position:relative;}
+.login-box::before{content:'';position:absolute;top:-6px;left:-6px;right:-6px;bottom:-6px;border:1px solid var(--magenta);pointer-events:none;}
+.login-title{font-family:'Anton',sans-serif;font-size:30px;letter-spacing:0.5px;}
+.login-sub{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--ink-dim);margin:2px 0 20px;text-transform:uppercase;}
+.login-box input{width:100%;padding:10px;border:1px solid var(--ink);margin-bottom:10px;font-family:'Space Grotesk';font-size:13.5px;background:var(--paper);}
+.login-box button{width:100%;padding:11px;background:var(--ink);color:var(--paper);border:none;font-family:'IBM Plex Mono';font-size:12px;letter-spacing:1px;text-transform:uppercase;}
+.login-error{color:var(--brick);font-size:12px;margin-top:8px;font-family:'IBM Plex Mono';}
+
+/* ---------- APP ---------- */
+#app{display:none;}
+.app{display:flex;min-height:100vh;}
+
+.sidebar{width:220px;flex-shrink:0;background:var(--paper-raised);border-right:2px solid var(--ink);padding:0;}
+.brand-block{padding:22px 18px 16px;border-bottom:2px solid var(--ink);position:relative;overflow:hidden;}
+.brand-block::after{content:'';position:absolute;top:0;right:0;width:40px;height:100%;background-image:radial-gradient(var(--magenta) 1.6px, transparent 1.8px);background-size:7px 7px;opacity:0.6;}
+.brand{font-family:'Anton',sans-serif;font-size:26px;letter-spacing:0.5px;line-height:1;}
+.brand-sub{font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:var(--ink-dim);letter-spacing:1px;margin-top:4px;text-transform:uppercase;}
+.nav{padding:14px 12px;}
+.nav-item{display:flex;align-items:center;gap:9px;padding:10px 10px;border:none;background:none;width:100%;text-align:left;font-family:'Fredoka',sans-serif;font-size:13.5px;color:var(--ink);border-radius:var(--radius);margin-bottom:3px;}
+.nav-item:hover{background:var(--paper);}
+.nav-item.active{background:var(--ink);color:var(--paper);}
+.nav-badge{margin-top:12px;background:var(--mustard);border:1px solid var(--ink);padding:8px 10px;font-family:'IBM Plex Mono';font-size:10.5px;cursor:pointer;display:none;}
+.nav-badge.show{display:block;}
+.sidebar-foot{padding:14px 18px;border-top:2px solid var(--ink);font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--ink-dim);line-height:1.7;position:absolute;bottom:0;width:220px;}
+
+.main{flex:1;padding:30px 40px 60px;max-width:1300px;}
+.view{display:none;}
+.view.active{display:block;}
+
+.page-head{border-bottom:3px solid var(--ink);padding-bottom:14px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:flex-end;}
+.page-title{font-family:'Anton',sans-serif;font-size:34px;letter-spacing:0.5px;}
+.page-tag{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--ink-dim);margin-top:2px;text-transform:uppercase;}
+
+.toolbar{display:flex;justify-content:space-between;align-items:center;margin:18px 0;gap:10px;flex-wrap:wrap;}
+.toggle-group{display:flex;border:2px solid var(--ink);}
+.toggle-group button{background:var(--paper-raised);border:none;padding:7px 16px;font-size:11.5px;font-family:'IBM Plex Mono';text-transform:uppercase;}
+.toggle-group button.on{background:var(--ink);color:var(--paper);}
+.btn{background:var(--ink);color:var(--paper);border:2px solid var(--ink);padding:9px 16px;font-size:13px;font-weight:600;font-family:'Fredoka';display:inline-flex;align-items:center;gap:6px;}
+.btn:hover{background:var(--magenta-deep);border-color:var(--magenta-deep);}
+.btn.ghost{background:var(--paper-raised);color:var(--brick);border-color:var(--brick);}
+.btn.small{padding:5px 10px;font-size:11.5px;}
+.btn.logout{background:none;color:var(--ink-dim);border:none;font-family:'IBM Plex Mono';font-size:10px;text-transform:uppercase;}
+
+.capture{background:var(--paper-raised);border:2px solid var(--ink);padding:14px 16px;margin-bottom:20px;position:relative;}
+.capture-label{font-family:'IBM Plex Mono';font-size:10px;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;background:var(--mustard);display:inline-block;padding:2px 8px;border:1px solid var(--ink);}
+.capture textarea{width:100%;border:1px solid var(--ink);padding:10px;font-family:'Space Grotesk';font-size:13px;resize:vertical;min-height:52px;background:var(--paper);}
+.capture-row{display:flex;justify-content:space-between;align-items:center;margin-top:9px;gap:10px;}
+.capture-hint{font-size:11px;color:var(--ink-dim);}
+
+/* ---------- BOARD ---------- */
+.board{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;align-items:start;}
+.column{border:2px solid var(--ink);background:var(--paper-raised);min-height:110px;}
+.column-head{padding:9px 10px;color:#fff;display:flex;align-items:center;gap:8px;}
+.column-title{font-family:'Fredoka';font-size:12.5px;font-weight:600;}
+.column-count{margin-left:auto;font-family:'IBM Plex Mono';font-size:11px;}
+.column-body{padding:9px;display:flex;flex-direction:column;gap:8px;min-height:60px;}
+.column-body.dragover{background:var(--paper);}
+
+.card{background:var(--paper);border:1px solid var(--ink);padding:10px 11px;cursor:pointer;}
+.card:hover{border-color:var(--magenta-deep);box-shadow:2px 2px 0 var(--magenta);}
+.card-role{font-size:13px;font-weight:600;}
+.card-co{font-size:11.5px;color:var(--ink-dim);}
+.card-meta{display:flex;justify-content:space-between;margin-top:7px;font-family:'IBM Plex Mono';font-size:10px;color:var(--ink-dim);}
+.card-deadline.soon{color:var(--brick);font-weight:600;}
+
+/* ---------- LIST ---------- */
+table{width:100%;border-collapse:collapse;background:var(--paper-raised);border:2px solid var(--ink);}
+th,td{padding:9px 11px;text-align:left;border-bottom:1px solid var(--ink);font-size:12.5px;}
+th{font-family:'IBM Plex Mono';font-size:10px;text-transform:uppercase;background:var(--ink);color:var(--paper);}
+tr.row:hover{background:var(--paper);cursor:pointer;}
+.stage-pill{font-family:'IBM Plex Mono';font-size:9.5px;padding:3px 8px;color:#fff;display:inline-block;}
+
+/* ---------- GRID CARDS ---------- */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;}
+.item-card{background:var(--paper-raised);border:2px solid var(--ink);padding:15px;cursor:pointer;position:relative;}
+.item-card:hover{box-shadow:3px 3px 0 var(--magenta);}
+.item-title{font-weight:600;font-size:14px;}
+.item-sub{font-size:12px;color:var(--ink-dim);margin-top:2px;}
+.item-tags{margin-top:9px;display:flex;gap:6px;flex-wrap:wrap;}
+.tag{font-family:'IBM Plex Mono';font-size:9.5px;padding:2px 7px;border:1px solid var(--ink);color:var(--ink-dim);}
+.link-chip{font-size:10px;color:var(--magenta-deep);margin-top:7px;font-family:'IBM Plex Mono';}
+
+.empty{padding:36px 20px;text-align:center;color:var(--ink-dim);font-size:13px;border:2px dashed var(--ink);}
+.empty b{color:var(--ink);display:block;font-family:'Anton',sans-serif;font-size:18px;margin-bottom:5px;letter-spacing:0.5px;}
+
+/* ---------- INBOX BANNER ---------- */
+.inbox-banner{background:var(--magenta);color:#fff;border:2px solid var(--ink);padding:10px 14px;margin-bottom:16px;display:none;align-items:center;justify-content:space-between;font-family:'Fredoka';font-size:13px;}
+.inbox-banner.show{display:flex;}
+.inbox-list{display:none;flex-direction:column;gap:8px;margin-bottom:16px;}
+.inbox-list.show{display:flex;}
+.inbox-item{background:var(--paper-raised);border:2px solid var(--mustard);padding:10px 12px;display:flex;justify-content:space-between;align-items:center;gap:10px;}
+.inbox-item-text{font-size:12.5px;}
+.inbox-item-text b{display:block;font-size:13.5px;}
+.inbox-actions{display:flex;gap:6px;flex-shrink:0;}
+
+/* ---------- MODAL ---------- */
+.overlay{position:fixed;inset:0;background:rgba(25,21,16,0.6);display:none;align-items:center;justify-content:center;z-index:50;padding:24px;}
+.overlay.active{display:flex;}
+.modal{background:var(--paper-raised);border:2px solid var(--ink);width:100%;max-width:560px;max-height:88vh;overflow-y:auto;padding:26px 28px;position:relative;box-shadow:5px 5px 0 var(--magenta);}
+.modal h2{font-family:'Anton',sans-serif;font-size:22px;margin:0 0 14px;letter-spacing:0.5px;}
+.modal .close{position:absolute;top:18px;right:20px;background:none;border:none;color:var(--ink);font-size:22px;font-family:'Anton';}
+.field{margin-bottom:13px;}
+.field label{display:block;font-family:'IBM Plex Mono';font-size:10px;letter-spacing:0.5px;text-transform:uppercase;margin-bottom:5px;color:var(--ink-dim);}
+.field input,.field select,.field textarea{width:100%;border:1px solid var(--ink);padding:9px 10px;font-family:'Space Grotesk';font-size:13.5px;background:var(--paper);}
+.field textarea{resize:vertical;min-height:60px;}
+.field-row{display:flex;gap:12px;}
+.field-row>.field{flex:1;}
+.modal-actions{display:flex;justify-content:space-between;margin-top:18px;padding-top:14px;border-top:2px solid var(--ink);}
+.linked-list{display:flex;flex-direction:column;gap:6px;margin-top:6px;}
+.linked-row{display:flex;justify-content:space-between;align-items:center;background:var(--paper);padding:7px 10px;border:1px solid var(--ink);font-size:12px;}
+
+.badge{display:inline-flex;flex-shrink:0;}
+</style>
+</head>
+<body>
+
+<!-- LOGIN GATE -->
+<div id="loginGate">
+  <div class="login-box">
+    <div class="login-title">DILETTANTE</div>
+    <div class="login-sub">sign in to sync your desk</div>
+    <input type="email" id="loginEmail" placeholder="email">
+    <input type="password" id="loginPass" placeholder="password">
+    <button id="loginBtn">Log in</button>
+    <div class="login-error" id="loginError"></div>
+  </div>
+</div>
+
+<div id="app">
+<div class="app">
+
+  <div class="sidebar">
+    <div class="brand-block">
+      <div class="brand">DILETTANTE</div>
+      <div class="brand-sub">the assignment desk</div>
+    </div>
+    <div class="nav">
+      <button class="nav-item active" data-view="desk">The Desk</button>
+      <button class="nav-item" data-view="pitches">Pitches</button>
+      <button class="nav-item" data-view="sources">Sources</button>
+      <button class="nav-item" data-view="notebook">Notebook</button>
+      <div class="nav-badge" id="inboxNavBadge">📥 <span id="inboxCount">0</span> new from newsletters</div>
+    </div>
+    <div class="sidebar-foot">Synced via Firebase.<br>Newsletters land in your inbox for review, never auto-posted.<br><button class="btn logout" id="logoutBtn" style="margin-top:6px;padding:0;">Log out</button></div>
+  </div>
+
+  <div class="main">
+
+    <!-- DESK -->
+    <div class="view active" id="view-desk">
+      <div class="page-head"><div><div class="page-title">The Desk</div><div class="page-tag">researching → pitched → applied → interview → decision</div></div></div>
+
+      <div class="inbox-banner" id="inboxBanner">
+        <span id="inboxBannerText">0 new from your newsletters</span>
+        <button class="btn small" id="reviewInboxBtn" style="background:#fff;color:var(--magenta-deep);">Review</button>
+      </div>
+      <div class="inbox-list" id="inboxList"></div>
+
+      <div class="capture">
+        <div class="capture-label">Quick capture</div>
+        <textarea id="captureInput" placeholder="Paste a job posting, newsletter blurb, or LinkedIn post here..."></textarea>
+        <div class="capture-row">
+          <span class="capture-hint" id="captureHint">Uses your Claude API key (set it in Sources → Settings) to pull out the details.</span>
+          <button class="btn small" id="captureBtn">Parse &amp; add</button>
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <div class="toggle-group"><button id="btnBoard" class="on">Board</button><button id="btnList">List</button></div>
+        <button class="btn" id="addAppBtn">+ New application</button>
+      </div>
+
+      <div id="boardWrap" class="board"></div>
+      <div id="listWrap" style="display:none;"></div>
+    </div>
+
+    <!-- PITCHES -->
+    <div class="view" id="view-pitches">
+      <div class="page-head"><div><div class="page-title">Pitches</div><div class="page-tag">story and column ideas out the door</div></div><button class="btn" id="addPitchBtn">+ New pitch</button></div>
+      <div id="pitchesWrap" class="grid"></div>
+    </div>
+
+    <!-- SOURCES -->
+    <div class="view" id="view-sources">
+      <div class="page-head"><div><div class="page-title">Sources</div><div class="page-tag">editors, referrals, and settings</div></div><div style="display:flex;gap:8px;"><button class="btn ghost" id="settingsBtn">Settings</button><button class="btn" id="addContactBtn">+ New source</button></div></div>
+      <div id="contactsWrap" class="grid"></div>
+    </div>
+
+    <!-- NOTEBOOK -->
+    <div class="view" id="view-notebook">
+      <div class="page-head"><div><div class="page-title">Notebook</div><div class="page-tag">loose ideas before they're anything else</div></div><button class="btn" id="addNoteBtn">+ New entry</button></div>
+      <div id="notebookWrap" class="grid"></div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<!-- APPLICATION MODAL -->
+<div class="overlay" id="appOverlay">
+  <div class="modal">
+    <button class="close" data-close="appOverlay">&times;</button>
+    <h2 id="appModalTitle">New application</h2>
+    <input type="hidden" id="appId">
+    <div class="field-row"><div class="field"><label>Role</label><input id="f_role"></div><div class="field"><label>Company</label><input id="f_company"></div></div>
+    <div class="field-row"><div class="field"><label>Location</label><input id="f_location"></div><div class="field"><label>Pay range</label><input id="f_salary" placeholder="e.g. $55-65k"></div></div>
+    <div class="field-row">
+      <div class="field"><label>Stage</label><select id="f_stage">
+        <option value="0">Researching</option><option value="1">Pitched</option><option value="2">Applied</option><option value="3">Interview</option><option value="4">Decision</option>
+      </select></div>
+      <div class="field"><label>Deadline</label><input type="date" id="f_deadline"></div>
+    </div>
+    <div class="field"><label>Posting link</label><input id="f_link" placeholder="https://"></div>
+    <div class="field-row"><div class="field"><label>Source / referral</label><select id="f_contact"><option value="">— none —</option></select></div><div class="field"><label>Linked pitch</label><select id="f_pitch"><option value="">— none —</option></select></div></div>
+    <div class="field"><label>Next action</label><input id="f_next" placeholder="e.g. Follow up with editor Thursday"></div>
+    <div class="field"><label>Notes</label><textarea id="f_notes"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn ghost" id="deleteAppBtn" style="display:none;">Delete</button>
+      <button class="btn" id="saveAppBtn">Save application</button>
+    </div>
+  </div>
+</div>
+
+<!-- PITCH MODAL -->
+<div class="overlay" id="pitchOverlay">
+  <div class="modal">
+    <button class="close" data-close="pitchOverlay">&times;</button>
+    <h2 id="pitchModalTitle">New pitch</h2>
+    <input type="hidden" id="pitchId">
+    <div class="field"><label>Title / angle</label><input id="p_title"></div>
+    <div class="field-row"><div class="field"><label>Outlet</label><input id="p_outlet"></div>
+      <div class="field"><label>Status</label><select id="p_status">
+        <option value="idea">Idea</option><option value="drafted">Drafted</option><option value="sent">Sent</option><option value="accepted">Accepted</option><option value="published">Published</option><option value="rejected">Rejected</option>
+      </select></div></div>
+    <div class="field-row"><div class="field"><label>Editor / contact</label><select id="p_contact"><option value="">— none —</option></select></div><div class="field"><label>Linked application</label><select id="p_app"><option value="">— none —</option></select></div></div>
+    <div class="field"><label>Notes</label><textarea id="p_notes"></textarea></div>
+    <div class="modal-actions"><button class="btn ghost" id="deletePitchBtn" style="display:none;">Delete</button><button class="btn" id="savePitchBtn">Save pitch</button></div>
+  </div>
+</div>
+
+<!-- CONTACT MODAL -->
+<div class="overlay" id="contactOverlay">
+  <div class="modal">
+    <button class="close" data-close="contactOverlay">&times;</button>
+    <h2 id="contactModalTitle">New source</h2>
+    <input type="hidden" id="c_id">
+    <div class="field-row"><div class="field"><label>Name</label><input id="c_name"></div><div class="field"><label>Title</label><input id="c_role"></div></div>
+    <div class="field-row"><div class="field"><label>Organization</label><input id="c_org"></div><div class="field"><label>Email</label><input id="c_email"></div></div>
+    <div class="field"><label>How you know them</label><input id="c_how" placeholder="e.g. Dartmouth alum, editor at Fortune"></div>
+    <div class="field"><label>Notes</label><textarea id="c_notes"></textarea></div>
+    <div id="c_linked"></div>
+    <div class="modal-actions"><button class="btn ghost" id="deleteContactBtn" style="display:none;">Delete</button><button class="btn" id="saveContactBtn">Save source</button></div>
+  </div>
+</div>
+
+<!-- NOTE MODAL -->
+<div class="overlay" id="noteOverlay">
+  <div class="modal">
+    <button class="close" data-close="noteOverlay">&times;</button>
+    <h2>New notebook entry</h2>
+    <input type="hidden" id="n_id">
+    <div class="field"><label>Tag</label><input id="n_tag" placeholder="e.g. fellowship, freelance, longshot"></div>
+    <div class="field"><label>Entry</label><textarea id="n_text" style="min-height:120px;"></textarea></div>
+    <div class="modal-actions"><button class="btn ghost" id="deleteNoteBtn" style="display:none;">Delete</button><button class="btn" id="saveNoteBtn">Save entry</button></div>
+  </div>
+</div>
+
+<!-- SETTINGS MODAL -->
+<div class="overlay" id="settingsOverlay">
+  <div class="modal">
+    <button class="close" data-close="settingsOverlay">&times;</button>
+    <h2>Settings</h2>
+    <div class="field"><label>Anthropic API key (for quick capture)</label><input id="s_apikey" placeholder="sk-ant-..." type="password"></div>
+    <div style="font-size:11.5px;color:var(--ink-dim);margin-bottom:14px;">Stored in your account, synced across your devices. Used only for the quick-capture parser, called directly from your browser.</div>
+    <div class="modal-actions" style="justify-content:flex-end;"><button class="btn" id="saveSettingsBtn">Save</button></div>
+  </div>
+</div>
+
+<script>
+/* ===================== FIREBASE CONFIG =====================
+Paste your config object from the Firebase console here. */
+const firebaseConfig = {
+  apiKey: "AIzaSyBUo9SWco1omNDTJIFqDc-5PzoO4b1cql8",
+  authDomain: "dilletante-b1d33.firebaseapp.com",
+  databaseURL: "https://dilletante-b1d33-default-rtdb.firebaseio.com",
+  projectId: "dilletante-b1d33",
+  storageBucket: "dilletante-b1d33.firebasestorage.app",
+  messagingSenderId: "306606930303",
+  appId: "1:306606930303:web:72fe19d4634c8827dc024a"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+let uid = null;
+let DB = {apps:[], pitches:[], contacts:[], notes:[]};
+let inboxItems = [];
+let settings = {apiKey:''};
+let unsubs = [];
+
+/* ---------------- AUTH ---------------- */
+document.getElementById('loginBtn').addEventListener('click', async ()=>{
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass = document.getElementById('loginPass').value;
+  const err = document.getElementById('loginError');
+  err.textContent = '';
+  try{
+    await auth.signInWithEmailAndPassword(email, pass);
+  }catch(e){
+    err.textContent = "Couldn't log in — check your email/password in the Firebase console.";
+  }
+});
+document.getElementById('logoutBtn').addEventListener('click', ()=> auth.signOut());
+
+auth.onAuthStateChanged(user=>{
+  unsubs.forEach(u=>u());
+  unsubs = [];
+  if(user){
+    uid = user.uid;
+    document.getElementById('loginGate').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    attachListeners();
+  } else {
+    uid = null;
+    document.getElementById('loginGate').style.display = 'flex';
+    document.getElementById('app').style.display = 'none';
+  }
+});
+
+function attachListeners(){
+  const col = (name)=> db.collection('users').doc(uid).collection(name);
+  unsubs.push(col('applications').onSnapshot(snap=>{
+    DB.apps = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    renderDesk();
+  }));
+  unsubs.push(col('pitches').onSnapshot(snap=>{ DB.pitches = snap.docs.map(d=>({id:d.id, ...d.data()})); renderPitches(); }));
+  unsubs.push(col('contacts').onSnapshot(snap=>{ DB.contacts = snap.docs.map(d=>({id:d.id, ...d.data()})); renderContacts(); }));
+  unsubs.push(col('notes').onSnapshot(snap=>{ DB.notes = snap.docs.map(d=>({id:d.id, ...d.data()})); renderNotebook(); }));
+  unsubs.push(db.collection('users').doc(uid).collection('settings').doc('main').onSnapshot(doc=>{
+    settings = doc.exists ? doc.data() : {apiKey:''};
+  }));
+  unsubs.push(db.collection('inbox').onSnapshot(snap=>{
+    inboxItems = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    renderInbox();
+  }));
+}
+
+function esc(s){ return (s||'').replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function uidGen(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+
+/* ---------------- NAV ---------------- */
+document.querySelectorAll('.nav-item').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    document.getElementById('view-'+btn.dataset.view).classList.add('active');
+  });
+});
+
+/* ---------------- STAGE CONFIG ---------------- */
+const STAGES = ['Researching','Pitched','Applied','Interview','Decision'];
+const STAGE_COLORS = ['#767A3D','#5E8CA3','#E8AE33','#D6236A','#B23A2E'];
+
+function dotBadge(stageIdx, size){
+  const count = 3 + stageIdx*3;
+  const c = STAGE_COLORS[stageIdx];
+  let dots = '';
+  for(let i=0;i<count;i++){
+    const angle = (360/count)*i;
+    const r = size*0.34;
+    const x = size/2 + r*Math.cos(angle*Math.PI/180);
+    const y = size/2 + r*Math.sin(angle*Math.PI/180);
+    dots += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${size*0.055}" fill="${c}"/>`;
+  }
+  return `<svg viewBox="0 0 ${size} ${size}" width="${size}" height="${size}">${dots}<circle cx="${size/2}" cy="${size/2}" r="${size*0.07}" fill="var(--ink)"/></svg>`;
+}
+
+function daysUntil(dateStr){
+  if(!dateStr) return null;
+  const d = new Date(dateStr+'T00:00:00');
+  return Math.ceil((d - new Date().setHours(0,0,0,0))/86400000);
+}
+
+/* ---------------- BOARD / LIST ---------------- */
+let viewMode = 'board';
+function renderDesk(){
+  const boardWrap = document.getElementById('boardWrap');
+  const listWrap = document.getElementById('listWrap');
+  if(viewMode==='board'){
+    boardWrap.style.display='grid'; listWrap.style.display='none';
+    boardWrap.innerHTML = STAGES.map((s,idx)=>{
+      const items = DB.apps.filter(a=>a.stage==idx);
+      return `<div class="column">
+        <div class="column-head" style="background:${STAGE_COLORS[idx]}"><span class="badge">${dotBadge(idx,16)}</span><span class="column-title">${s}</span><span class="column-count">${items.length}</span></div>
+        <div class="column-body" data-stage="${idx}">${items.map(cardHTML).join('')}</div>
+      </div>`;
+    }).join('');
+    setupDragDrop();
+    boardWrap.querySelectorAll('.card').forEach(c=>c.addEventListener('click',()=>openAppModal(c.dataset.id)));
+  } else {
+    boardWrap.style.display='none'; listWrap.style.display='block';
+    if(DB.apps.length===0){ listWrap.innerHTML = `<div class="empty"><b>Nothing on the desk yet</b>Drop in a role you're eyeing, or paste one in above.</div>`; return; }
+    const sorted = [...DB.apps].sort((a,b)=> (a.deadline||'9999').localeCompare(b.deadline||'9999'));
+    listWrap.innerHTML = `<table><tr><th>Role</th><th>Company</th><th>Stage</th><th>Deadline</th><th>Next action</th></tr>
+      ${sorted.map(a=>`<tr class="row" data-id="${a.id}">
+        <td>${esc(a.role)}</td><td>${esc(a.company)}</td>
+        <td><span class="stage-pill" style="background:${STAGE_COLORS[a.stage]}">${STAGES[a.stage]}</span></td>
+        <td>${a.deadline||'—'}</td><td>${esc(a.nextAction||'—')}</td>
+      </tr>`).join('')}</table>`;
+    listWrap.querySelectorAll('.row').forEach(r=>r.addEventListener('click',()=>openAppModal(r.dataset.id)));
+  }
+}
+function cardHTML(a){
+  const dleft = daysUntil(a.deadline);
+  const soon = dleft!==null && dleft<=5;
+  return `<div class="card" draggable="true" data-id="${a.id}">
+    <div class="card-role">${esc(a.role)}</div><div class="card-co">${esc(a.company)}</div>
+    <div class="card-meta"><span>${a.location? esc(a.location):''}</span><span class="card-deadline ${soon?'soon':''}">${a.deadline? (dleft>=0? dleft+'d left':'past due'):''}</span></div>
+  </div>`;
+}
+function setupDragDrop(){
+  let dragId = null;
+  document.querySelectorAll('.card').forEach(card=> card.addEventListener('dragstart', e=>{ dragId = card.dataset.id; }));
+  document.querySelectorAll('.column-body').forEach(col=>{
+    col.addEventListener('dragover', e=>{ e.preventDefault(); col.classList.add('dragover'); });
+    col.addEventListener('dragleave', ()=> col.classList.remove('dragover'));
+    col.addEventListener('drop', e=>{
+      e.preventDefault(); col.classList.remove('dragover');
+      db.collection('users').doc(uid).collection('applications').doc(dragId).update({stage: parseInt(col.dataset.stage)});
+    });
+  });
+}
+document.getElementById('btnBoard').addEventListener('click', ()=>{ viewMode='board'; document.getElementById('btnBoard').classList.add('on'); document.getElementById('btnList').classList.remove('on'); renderDesk(); });
+document.getElementById('btnList').addEventListener('click', ()=>{ viewMode='list'; document.getElementById('btnList').classList.add('on'); document.getElementById('btnBoard').classList.remove('on'); renderDesk(); });
+
+/* ---------------- APPLICATION MODAL ---------------- */
+function populateSelects(){
+  document.getElementById('f_contact').innerHTML = '<option value="">— none —</option>' + DB.contacts.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');
+  document.getElementById('f_pitch').innerHTML = '<option value="">— none —</option>' + DB.pitches.map(p=>`<option value="${p.id}">${esc(p.title)}</option>`).join('');
+}
+function openAppModal(id, prefill){
+  populateSelects();
+  const isEdit = !!id;
+  document.getElementById('appModalTitle').textContent = isEdit? 'Edit application':'New application';
+  document.getElementById('deleteAppBtn').style.display = isEdit? 'inline-flex':'none';
+  const a = isEdit? DB.apps.find(x=>x.id===id) : (prefill||{});
+  document.getElementById('appId').value = id||'';
+  document.getElementById('f_role').value = a.role||'';
+  document.getElementById('f_company').value = a.company||'';
+  document.getElementById('f_location').value = a.location||'';
+  document.getElementById('f_salary').value = a.salary||'';
+  document.getElementById('f_stage').value = a.stage!==undefined? a.stage:0;
+  document.getElementById('f_deadline').value = a.deadline||'';
+  document.getElementById('f_link').value = a.link||'';
+  document.getElementById('f_contact').value = a.contactId||'';
+  document.getElementById('f_pitch').value = a.pitchId||'';
+  document.getElementById('f_next').value = a.nextAction||'';
+  document.getElementById('f_notes').value = a.notes||'';
+  document.getElementById('appOverlay').classList.add('active');
+}
+document.getElementById('addAppBtn').addEventListener('click', ()=>openAppModal(null));
+document.getElementById('saveAppBtn').addEventListener('click', async ()=>{
+  const id = document.getElementById('appId').value;
+  const data = {
+    role: document.getElementById('f_role').value.trim(), company: document.getElementById('f_company').value.trim(),
+    location: document.getElementById('f_location').value.trim(), salary: document.getElementById('f_salary').value.trim(),
+    stage: parseInt(document.getElementById('f_stage').value), deadline: document.getElementById('f_deadline').value,
+    link: document.getElementById('f_link').value.trim(), contactId: document.getElementById('f_contact').value,
+    pitchId: document.getElementById('f_pitch').value, nextAction: document.getElementById('f_next').value.trim(),
+    notes: document.getElementById('f_notes').value.trim(), updatedAt: Date.now()
+  };
+  if(!data.role || !data.company){ alert('Add at least a role and company.'); return; }
+  const col = db.collection('users').doc(uid).collection('applications');
+  if(id) await col.doc(id).update(data); else await col.add({...data, createdAt: Date.now()});
+  document.getElementById('appOverlay').classList.remove('active');
+});
+document.getElementById('deleteAppBtn').addEventListener('click', async ()=>{
+  const id = document.getElementById('appId').value;
+  await db.collection('users').doc(uid).collection('applications').doc(id).delete();
+  document.getElementById('appOverlay').classList.remove('active');
+});
+
+/* ---------------- OVERLAY CLOSE ---------------- */
+document.querySelectorAll('[data-close]').forEach(btn=> btn.addEventListener('click', ()=> document.getElementById(btn.dataset.close).classList.remove('active')));
+document.querySelectorAll('.overlay').forEach(ov=> ov.addEventListener('click', e=>{ if(e.target===ov) ov.classList.remove('active'); }));
+
+/* ---------------- PITCHES ---------------- */
+function renderPitches(){
+  const wrap = document.getElementById('pitchesWrap');
+  if(DB.pitches.length===0){ wrap.innerHTML = `<div class="empty"><b>No pitches out yet</b>Note one down — even a rough angle counts.</div>`; return; }
+  wrap.innerHTML = DB.pitches.map(p=>{
+    const app = DB.apps.find(a=>a.id===p.linkedAppId);
+    const contact = DB.contacts.find(c=>c.id===p.contactId);
+    return `<div class="item-card" data-id="${p.id}">
+      <div class="item-title">${esc(p.title)}</div><div class="item-sub">${esc(p.outlet||'')}</div>
+      <div class="item-tags"><span class="tag">${p.status}</span></div>
+      ${contact? `<div class="link-chip">→ ${esc(contact.name)}</div>`:''}
+      ${app? `<div class="link-chip">↳ linked to ${esc(app.role)} @ ${esc(app.company)}</div>`:''}
+    </div>`;
+  }).join('');
+  wrap.querySelectorAll('.item-card').forEach(c=>c.addEventListener('click',()=>openPitchModal(c.dataset.id)));
+}
+function populatePitchSelects(){
+  document.getElementById('p_contact').innerHTML = '<option value="">— none —</option>' + DB.contacts.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');
+  document.getElementById('p_app').innerHTML = '<option value="">— none —</option>' + DB.apps.map(a=>`<option value="${a.id}">${esc(a.role)} @ ${esc(a.company)}</option>`).join('');
+}
+function openPitchModal(id){
+  populatePitchSelects();
+  const isEdit = !!id;
+  document.getElementById('pitchModalTitle').textContent = isEdit?'Edit pitch':'New pitch';
+  document.getElementById('deletePitchBtn').style.display = isEdit?'inline-flex':'none';
+  const p = isEdit? DB.pitches.find(x=>x.id===id) : {};
+  document.getElementById('pitchId').value = id||'';
+  document.getElementById('p_title').value = p.title||'';
+  document.getElementById('p_outlet').value = p.outlet||'';
+  document.getElementById('p_status').value = p.status||'idea';
+  document.getElementById('p_contact').value = p.contactId||'';
+  document.getElementById('p_app').value = p.linkedAppId||'';
+  document.getElementById('p_notes').value = p.notes||'';
+  document.getElementById('pitchOverlay').classList.add('active');
+}
+document.getElementById('addPitchBtn').addEventListener('click', ()=>openPitchModal(null));
+document.getElementById('savePitchBtn').addEventListener('click', async ()=>{
+  const id = document.getElementById('pitchId').value;
+  const data = {
+    title: document.getElementById('p_title').value.trim(), outlet: document.getElementById('p_outlet').value.trim(),
+    status: document.getElementById('p_status').value, contactId: document.getElementById('p_contact').value,
+    linkedAppId: document.getElementById('p_app').value, notes: document.getElementById('p_notes').value.trim(), updatedAt: Date.now()
+  };
+  if(!data.title){ alert('Give the pitch a title.'); return; }
+  const col = db.collection('users').doc(uid).collection('pitches');
+  if(id) await col.doc(id).update(data); else await col.add({...data, createdAt: Date.now()});
+  document.getElementById('pitchOverlay').classList.remove('active');
+});
+document.getElementById('deletePitchBtn').addEventListener('click', async ()=>{
+  const id = document.getElementById('pitchId').value;
+  await db.collection('users').doc(uid).collection('pitches').doc(id).delete();
+  document.getElementById('pitchOverlay').classList.remove('active');
+});
+
+/* ---------------- CONTACTS ---------------- */
+function renderContacts(){
+  const wrap = document.getElementById('contactsWrap');
+  if(DB.contacts.length===0){ wrap.innerHTML = `<div class="empty"><b>Your contact book is empty</b>Add the people who got you in the door.</div>`; return; }
+  wrap.innerHTML = DB.contacts.map(c=>{
+    const apps = DB.apps.filter(a=>a.contactId===c.id);
+    const pitches = DB.pitches.filter(p=>p.contactId===c.id);
+    return `<div class="item-card" data-id="${c.id}">
+      <div class="item-title">${esc(c.name)}</div><div class="item-sub">${esc(c.role||'')}${c.org? ' · '+esc(c.org):''}</div>
+      ${apps.length||pitches.length? `<div class="link-chip">${apps.length} application(s), ${pitches.length} pitch(es) linked</div>`:''}
+    </div>`;
+  }).join('');
+  wrap.querySelectorAll('.item-card').forEach(c=>c.addEventListener('click',()=>openContactModal(c.dataset.id)));
+}
+function openContactModal(id){
+  const isEdit = !!id;
+  document.getElementById('contactModalTitle').textContent = isEdit?'Edit source':'New source';
+  document.getElementById('deleteContactBtn').style.display = isEdit?'inline-flex':'none';
+  const c = isEdit? DB.contacts.find(x=>x.id===id) : {};
+  document.getElementById('c_id').value = id||'';
+  document.getElementById('c_name').value = c.name||'';
+  document.getElementById('c_role').value = c.role||'';
+  document.getElementById('c_org').value = c.org||'';
+  document.getElementById('c_email').value = c.email||'';
+  document.getElementById('c_how').value = c.how||'';
+  document.getElementById('c_notes').value = c.notes||'';
+  const linkedWrap = document.getElementById('c_linked');
+  if(isEdit){
+    const apps = DB.apps.filter(a=>a.contactId===id);
+    const pitches = DB.pitches.filter(p=>p.contactId===id);
+    linkedWrap.innerHTML = (apps.length||pitches.length)? `<label>Linked</label><div class="linked-list">
+      ${apps.map(a=>`<div class="linked-row"><span>${esc(a.role)} @ ${esc(a.company)}</span><span class="tag">${STAGES[a.stage]}</span></div>`).join('')}
+      ${pitches.map(p=>`<div class="linked-row"><span>${esc(p.title)}</span><span class="tag">${p.status}</span></div>`).join('')}
+    </div>` : '';
+  } else linkedWrap.innerHTML='';
+  document.getElementById('contactOverlay').classList.add('active');
+}
+document.getElementById('addContactBtn').addEventListener('click', ()=>openContactModal(null));
+document.getElementById('saveContactBtn').addEventListener('click', async ()=>{
+  const id = document.getElementById('c_id').value;
+  const data = {
+    name: document.getElementById('c_name').value.trim(), role: document.getElementById('c_role').value.trim(),
+    org: document.getElementById('c_org').value.trim(), email: document.getElementById('c_email').value.trim(),
+    how: document.getElementById('c_how').value.trim(), notes: document.getElementById('c_notes').value.trim(), updatedAt: Date.now()
+  };
+  if(!data.name){ alert('Add a name.'); return; }
+  const col = db.collection('users').doc(uid).collection('contacts');
+  if(id) await col.doc(id).update(data); else await col.add({...data, createdAt: Date.now()});
+  document.getElementById('contactOverlay').classList.remove('active');
+});
+document.getElementById('deleteContactBtn').addEventListener('click', async ()=>{
+  const id = document.getElementById('c_id').value;
+  await db.collection('users').doc(uid).collection('contacts').doc(id).delete();
+  document.getElementById('contactOverlay').classList.remove('active');
+});
+
+/* ---------------- NOTEBOOK ---------------- */
+function renderNotebook(){
+  const wrap = document.getElementById('notebookWrap');
+  if(DB.notes.length===0){ wrap.innerHTML = `<div class="empty"><b>Blank page</b>Jot something down before it's gone.</div>`; return; }
+  wrap.innerHTML = [...DB.notes].sort((a,b)=>b.createdAt-a.createdAt).map(n=>`
+    <div class="item-card" data-id="${n.id}">
+      <div class="item-tags">${n.tag? `<span class="tag">${esc(n.tag)}</span>`:''}</div>
+      <div class="item-sub" style="margin-top:8px;color:var(--ink);">${esc(n.text)}</div>
+    </div>`).join('');
+  wrap.querySelectorAll('.item-card').forEach(c=>c.addEventListener('click',()=>openNoteModal(c.dataset.id)));
+}
+function openNoteModal(id){
+  const isEdit = !!id;
+  document.getElementById('deleteNoteBtn').style.display = isEdit?'inline-flex':'none';
+  const n = isEdit? DB.notes.find(x=>x.id===id) : {};
+  document.getElementById('n_id').value = id||'';
+  document.getElementById('n_tag').value = n.tag||'';
+  document.getElementById('n_text').value = n.text||'';
+  document.getElementById('noteOverlay').classList.add('active');
+}
+document.getElementById('addNoteBtn').addEventListener('click', ()=>openNoteModal(null));
+document.getElementById('saveNoteBtn').addEventListener('click', async ()=>{
+  const id = document.getElementById('n_id').value;
+  const data = { tag: document.getElementById('n_tag').value.trim(), text: document.getElementById('n_text').value.trim(), updatedAt: Date.now() };
+  if(!data.text){ alert('Write something first.'); return; }
+  const col = db.collection('users').doc(uid).collection('notes');
+  if(id) await col.doc(id).update(data); else await col.add({...data, createdAt: Date.now()});
+  document.getElementById('noteOverlay').classList.remove('active');
+});
+document.getElementById('deleteNoteBtn').addEventListener('click', async ()=>{
+  const id = document.getElementById('n_id').value;
+  await db.collection('users').doc(uid).collection('notes').doc(id).delete();
+  document.getElementById('noteOverlay').classList.remove('active');
+});
+
+/* ---------------- SETTINGS ---------------- */
+document.getElementById('settingsBtn').addEventListener('click', ()=>{
+  document.getElementById('s_apikey').value = settings.apiKey||'';
+  document.getElementById('settingsOverlay').classList.add('active');
+});
+document.getElementById('saveSettingsBtn').addEventListener('click', async ()=>{
+  const apiKey = document.getElementById('s_apikey').value.trim();
+  await db.collection('users').doc(uid).collection('settings').doc('main').set({apiKey});
+  document.getElementById('settingsOverlay').classList.remove('active');
+});
+
+/* ---------------- INBOX (from Zapier/newsletter automation) ---------------- */
+function renderInbox(){
+  const badge = document.getElementById('inboxNavBadge');
+  const banner = document.getElementById('inboxBanner');
+  const count = document.getElementById('inboxCount');
+  document.getElementById('inboxBannerText').textContent = `${inboxItems.length} new from your newsletters`;
+  count.textContent = inboxItems.length;
+  badge.classList.toggle('show', inboxItems.length>0);
+  banner.classList.toggle('show', inboxItems.length>0);
+}
+function renderInboxList(){
+  const wrap = document.getElementById('inboxList');
+  if(inboxItems.length===0){ wrap.classList.remove('show'); wrap.innerHTML=''; return; }
+  wrap.classList.add('show');
+  wrap.innerHTML = inboxItems.map(i=>`
+    <div class="inbox-item" data-id="${i.id}">
+      <div class="inbox-item-text"><b>${esc(i.role||'(untitled)')}</b>${esc(i.company||'')} ${i.link? `· <a href="${esc(i.link)}" target="_blank">link</a>`:''}</div>
+      <div class="inbox-actions">
+        <button class="btn small approve-inbox">Add</button>
+        <button class="btn ghost small dismiss-inbox">Dismiss</button>
+      </div>
+    </div>`).join('');
+  wrap.querySelectorAll('.approve-inbox').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const row = btn.closest('.inbox-item'); const id = row.dataset.id;
+      const item = inboxItems.find(i=>i.id===id);
+      openAppModal(null, {role:item.role, company:item.company, location:item.location, link:item.link, deadline:item.deadline, nextAction:item.nextAction});
+      await db.collection('inbox').doc(id).delete();
+    });
+  });
+  wrap.querySelectorAll('.dismiss-inbox').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const row = btn.closest('.inbox-item'); const id = row.dataset.id;
+      await db.collection('inbox').doc(id).delete();
+    });
+  });
+}
+document.getElementById('reviewInboxBtn').addEventListener('click', renderInboxList);
+
+/* ---------------- QUICK CAPTURE ---------------- */
+document.getElementById('captureBtn').addEventListener('click', async ()=>{
+  const raw = document.getElementById('captureInput').value.trim();
+  const hint = document.getElementById('captureHint');
+  if(!raw) return;
+  if(!settings.apiKey){ hint.textContent = 'Add your Anthropic API key in Sources → Settings first.'; return; }
+  hint.textContent = 'Reading...';
+  try{
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key': settings.apiKey, 'anthropic-version':'2023-06-01', 'anthropic-dangerous-direct-browser-access':'true'},
+      body: JSON.stringify({
+        model:'claude-sonnet-4-6', max_tokens:1000,
+        messages:[{role:'user', content:
+          `Extract job application details from this pasted text. Respond ONLY with raw JSON, no markdown fences, no preamble. Shape: {"role":"","company":"","location":"","salary":"","link":"","deadline":"","nextAction":""}. Use "" for anything missing. Deadline must be YYYY-MM-DD or "". Text:\n\n${raw}`
+        }]
+      })
+    });
+    const data = await response.json();
+    const text = data.content.map(b=>b.text||'').join('').trim().replace(/^```json|```$/g,'').trim();
+    const parsed = JSON.parse(text);
+    document.getElementById('captureInput').value = '';
+    hint.textContent = "Uses your Claude API key (set it in Sources → Settings) to pull out the details.";
+    openAppModal(null, parsed);
+  }catch(e){
+    hint.textContent = "Couldn't parse that — add it manually below.";
+    console.error(e);
+  }
+});
+</script>
+</body>
+</html>
