@@ -184,7 +184,7 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
     </div>
     <div class="nav">
       <button class="nav-item active" data-view="desk">The Desk</button>
-      <button class="nav-item" data-view="pitches">Pitches</button>
+      <button class="nav-item" data-view="materials">Application Materials</button>
       <button class="nav-item" data-view="sources">Sources</button>
       <button class="nav-item" data-view="notebook">Notebook</button>
       <div class="nav-badge" id="inboxNavBadge">📥 <span id="inboxCount">0</span> new from newsletters</div>
@@ -222,10 +222,17 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
       <div id="listWrap" style="display:none;"></div>
     </div>
 
-    <!-- PITCHES -->
-    <div class="view" id="view-pitches">
-      <div class="page-head"><div><div class="page-title">Pitches</div><div class="page-tag">story and column ideas out the door</div></div><button class="btn" id="addPitchBtn">+ New pitch</button></div>
-      <div id="pitchesWrap" class="grid"></div>
+    <!-- MATERIALS -->
+    <div class="view" id="view-materials">
+      <div class="page-head"><div><div class="page-title">Application Materials</div><div class="page-tag">resumes, cover letters, and everything you send</div></div><button class="btn" id="addMaterialBtn">+ New material</button></div>
+      <div class="toolbar" style="margin-top:0;">
+        <div class="toggle-group">
+          <button class="mat-tab on" data-tab="resume">Resume</button>
+          <button class="mat-tab" data-tab="coverletter">Cover Letter</button>
+          <button class="mat-tab" data-tab="additional">Additional</button>
+        </div>
+      </div>
+      <div id="materialsWrap" class="grid"></div>
     </div>
 
     <!-- SOURCES -->
@@ -249,6 +256,7 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
   <div class="modal">
     <button class="close" data-close="appOverlay">&times;</button>
     <h2 id="appModalTitle">New application</h2>
+    <div id="appLinkDisplay" style="margin:-6px 0 14px;"></div>
     <input type="hidden" id="appId">
     <div class="field-row"><div class="field"><label>Role</label><input id="f_role"></div><div class="field"><label>Company</label><input id="f_company"></div></div>
     <div class="field-row"><div class="field"><label>Location</label><input id="f_location"></div><div class="field"><label>Pay range</label><input id="f_salary" placeholder="e.g. $55-65k"></div></div>
@@ -259,9 +267,10 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
       <div class="field"><label>Deadline</label><input type="date" id="f_deadline"></div>
     </div>
     <div class="field"><label>Posting link</label><input id="f_link" placeholder="https://"></div>
-    <div class="field-row"><div class="field"><label>Source / referral</label><select id="f_contact"><option value="">— none —</option></select></div><div class="field"><label>Linked pitch</label><select id="f_pitch"><option value="">— none —</option></select></div></div>
+    <div class="field"><label>Source / referral</label><select id="f_contact"><option value="">— none —</option></select></div>
     <div class="field"><label>Next action</label><input id="f_next" placeholder="e.g. Follow up with editor Thursday"></div>
     <div class="field"><label>Notes</label><textarea id="f_notes"></textarea></div>
+    <div id="app_materials"></div>
     <div class="modal-actions">
       <button class="btn ghost" id="deleteAppBtn" style="display:none;">Delete</button>
       <button class="btn" id="saveAppBtn">Save application</button>
@@ -269,20 +278,25 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
   </div>
 </div>
 
-<!-- PITCH MODAL -->
-<div class="overlay" id="pitchOverlay">
+<!-- MATERIAL MODAL -->
+<div class="overlay" id="materialOverlay">
   <div class="modal">
-    <button class="close" data-close="pitchOverlay">&times;</button>
-    <h2 id="pitchModalTitle">New pitch</h2>
-    <input type="hidden" id="pitchId">
-    <div class="field"><label>Title / angle</label><input id="p_title"></div>
-    <div class="field-row"><div class="field"><label>Outlet</label><input id="p_outlet"></div>
-      <div class="field"><label>Status</label><select id="p_status">
-        <option value="idea">Idea</option><option value="drafted">Drafted</option><option value="sent">Sent</option><option value="accepted">Accepted</option><option value="published">Published</option><option value="rejected">Rejected</option>
-      </select></div></div>
-    <div class="field-row"><div class="field"><label>Editor / contact</label><select id="p_contact"><option value="">— none —</option></select></div><div class="field"><label>Linked application</label><select id="p_app"><option value="">— none —</option></select></div></div>
-    <div class="field"><label>Notes</label><textarea id="p_notes"></textarea></div>
-    <div class="modal-actions"><button class="btn ghost" id="deletePitchBtn" style="display:none;">Delete</button><button class="btn" id="savePitchBtn">Save pitch</button></div>
+    <button class="close" data-close="materialOverlay">&times;</button>
+    <h2 id="materialModalTitle">New material</h2>
+    <input type="hidden" id="m_id">
+    <div class="field-row">
+      <div class="field"><label>Type</label><select id="m_type">
+        <option value="resume">Resume</option><option value="coverletter">Cover Letter</option><option value="additional">Additional</option>
+      </select></div>
+      <div class="field"><label>Title</label><input id="m_title" placeholder="e.g. Resume — editorial focus"></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Linked application</label><select id="m_app"><option value="">— none —</option></select></div>
+      <div class="field"><label>Company</label><input id="m_company" placeholder="fills in if linked above"></div>
+    </div>
+    <div class="field"><label>Link (Google Doc, Drive, etc.)</label><input id="m_link" placeholder="https://"></div>
+    <div class="field"><label>Content / notes</label><textarea id="m_content" style="min-height:110px;" placeholder="Paste text, or leave notes about this version"></textarea></div>
+    <div class="modal-actions"><button class="btn ghost" id="deleteMaterialBtn" style="display:none;">Delete</button><button class="btn" id="saveMaterialBtn">Save material</button></div>
   </div>
 </div>
 
@@ -341,7 +355,7 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 
 let uid = null;
-let DB = {apps:[], pitches:[], contacts:[], notes:[]};
+let DB = {apps:[], materials:[], contacts:[], notes:[]};
 let inboxItems = [];
 let settings = {apiKey:''};
 let unsubs = [];
@@ -380,8 +394,9 @@ function attachListeners(){
   unsubs.push(col('applications').onSnapshot(snap=>{
     DB.apps = snap.docs.map(d=>({id:d.id, ...d.data()}));
     renderDesk();
+    renderMaterials();
   }));
-  unsubs.push(col('pitches').onSnapshot(snap=>{ DB.pitches = snap.docs.map(d=>({id:d.id, ...d.data()})); renderPitches(); }));
+  unsubs.push(col('materials').onSnapshot(snap=>{ DB.materials = snap.docs.map(d=>({id:d.id, ...d.data()})); renderMaterials(); }));
   unsubs.push(col('contacts').onSnapshot(snap=>{ DB.contacts = snap.docs.map(d=>({id:d.id, ...d.data()})); renderContacts(); }));
   unsubs.push(col('notes').onSnapshot(snap=>{ DB.notes = snap.docs.map(d=>({id:d.id, ...d.data()})); renderNotebook(); }));
   unsubs.push(db.collection('users').doc(uid).collection('settings').doc('main').onSnapshot(doc=>{
@@ -485,7 +500,6 @@ document.getElementById('btnList').addEventListener('click', ()=>{ viewMode='lis
 /* ---------------- APPLICATION MODAL ---------------- */
 function populateSelects(){
   document.getElementById('f_contact').innerHTML = '<option value="">— none —</option>' + DB.contacts.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');
-  document.getElementById('f_pitch').innerHTML = '<option value="">— none —</option>' + DB.pitches.map(p=>`<option value="${p.id}">${esc(p.title)}</option>`).join('');
 }
 function openAppModal(id, prefill){
   populateSelects();
@@ -502,9 +516,17 @@ function openAppModal(id, prefill){
   document.getElementById('f_deadline').value = a.deadline||'';
   document.getElementById('f_link').value = a.link||'';
   document.getElementById('f_contact').value = a.contactId||'';
-  document.getElementById('f_pitch').value = a.pitchId||'';
   document.getElementById('f_next').value = a.nextAction||'';
   document.getElementById('f_notes').value = a.notes||'';
+  const linkDisp = document.getElementById('appLinkDisplay');
+  linkDisp.innerHTML = a.link? `<a href="${esc(a.link)}" target="_blank" rel="noopener" class="tag" style="display:inline-flex;padding:6px 10px;text-decoration:none;">View posting ↗</a>` : '';
+  const matWrap = document.getElementById('app_materials');
+  if(isEdit){
+    const mats = DB.materials.filter(m=>m.linkedAppId===id);
+    matWrap.innerHTML = mats.length? `<label>Materials</label><div class="linked-list">
+      ${mats.map(m=>`<div class="linked-row"><span>${esc(m.title||'(untitled)')}</span><span class="tag">${m.type}</span></div>`).join('')}
+    </div>` : '';
+  } else matWrap.innerHTML='';
   document.getElementById('appOverlay').classList.add('active');
 }
 document.getElementById('addAppBtn').addEventListener('click', ()=>openAppModal(null));
@@ -515,7 +537,7 @@ document.getElementById('saveAppBtn').addEventListener('click', async ()=>{
     location: document.getElementById('f_location').value.trim(), salary: document.getElementById('f_salary').value.trim(),
     stage: parseInt(document.getElementById('f_stage').value), deadline: document.getElementById('f_deadline').value,
     link: document.getElementById('f_link').value.trim(), contactId: document.getElementById('f_contact').value,
-    pitchId: document.getElementById('f_pitch').value, nextAction: document.getElementById('f_next').value.trim(),
+    nextAction: document.getElementById('f_next').value.trim(),
     notes: document.getElementById('f_notes').value.trim(), updatedAt: Date.now()
   };
   if(!data.role || !data.company){ alert('Add at least a role and company.'); return; }
@@ -533,58 +555,73 @@ document.getElementById('deleteAppBtn').addEventListener('click', async ()=>{
 document.querySelectorAll('[data-close]').forEach(btn=> btn.addEventListener('click', ()=> document.getElementById(btn.dataset.close).classList.remove('active')));
 document.querySelectorAll('.overlay').forEach(ov=> ov.addEventListener('click', e=>{ if(e.target===ov) ov.classList.remove('active'); }));
 
-/* ---------------- PITCHES ---------------- */
-function renderPitches(){
-  const wrap = document.getElementById('pitchesWrap');
-  if(DB.pitches.length===0){ wrap.innerHTML = `<div class="empty"><b>No pitches out yet</b>Note one down — even a rough angle counts.</div>`; return; }
-  wrap.innerHTML = DB.pitches.map(p=>{
-    const app = DB.apps.find(a=>a.id===p.linkedAppId);
-    const contact = DB.contacts.find(c=>c.id===p.contactId);
-    return `<div class="item-card" data-id="${p.id}">
-      <div class="item-title">${esc(p.title)}</div><div class="item-sub">${esc(p.outlet||'')}</div>
-      <div class="item-tags"><span class="tag">${p.status}</span></div>
-      ${contact? `<div class="link-chip">→ ${esc(contact.name)}</div>`:''}
-      ${app? `<div class="link-chip">↳ linked to ${esc(app.role)} @ ${esc(app.company)}</div>`:''}
+/* ---------------- MATERIALS ---------------- */
+let materialsTab = 'resume';
+document.querySelectorAll('.mat-tab').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.mat-tab').forEach(b=>b.classList.remove('on'));
+    btn.classList.add('on');
+    materialsTab = btn.dataset.tab;
+    renderMaterials();
+  });
+});
+function renderMaterials(){
+  const wrap = document.getElementById('materialsWrap');
+  if(!wrap) return;
+  const items = DB.materials.filter(m=>m.type===materialsTab);
+  const label = materialsTab==='resume'?'a resume':materialsTab==='coverletter'?'a cover letter':'a file';
+  if(items.length===0){ wrap.innerHTML = `<div class="empty"><b>Nothing here yet</b>Add ${label} version.</div>`; return; }
+  wrap.innerHTML = items.map(m=>{
+    const app = DB.apps.find(a=>a.id===m.linkedAppId);
+    return `<div class="item-card" data-id="${m.id}">
+      <div class="item-title">${esc(m.title||'(untitled)')}</div>
+      <div class="item-sub">${esc(m.company||(app? app.company:'')||'')}</div>
+      ${app? `<div class="link-chip">↳ ${esc(app.role)} @ ${esc(app.company)}</div>`:''}
+      ${m.link? `<div class="link-chip"><a href="${esc(m.link)}" target="_blank" rel="noopener">Open file ↗</a></div>`:''}
     </div>`;
   }).join('');
-  wrap.querySelectorAll('.item-card').forEach(c=>c.addEventListener('click',()=>openPitchModal(c.dataset.id)));
+  wrap.querySelectorAll('.item-card').forEach(c=>c.addEventListener('click',()=>openMaterialModal(c.dataset.id)));
 }
-function populatePitchSelects(){
-  document.getElementById('p_contact').innerHTML = '<option value="">— none —</option>' + DB.contacts.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');
-  document.getElementById('p_app').innerHTML = '<option value="">— none —</option>' + DB.apps.map(a=>`<option value="${a.id}">${esc(a.role)} @ ${esc(a.company)}</option>`).join('');
+function populateMaterialSelects(){
+  document.getElementById('m_app').innerHTML = '<option value="">— none —</option>' + DB.apps.map(a=>`<option value="${a.id}">${esc(a.role)} @ ${esc(a.company)}</option>`).join('');
 }
-function openPitchModal(id){
-  populatePitchSelects();
+function openMaterialModal(id){
+  populateMaterialSelects();
   const isEdit = !!id;
-  document.getElementById('pitchModalTitle').textContent = isEdit?'Edit pitch':'New pitch';
-  document.getElementById('deletePitchBtn').style.display = isEdit?'inline-flex':'none';
-  const p = isEdit? DB.pitches.find(x=>x.id===id) : {};
-  document.getElementById('pitchId').value = id||'';
-  document.getElementById('p_title').value = p.title||'';
-  document.getElementById('p_outlet').value = p.outlet||'';
-  document.getElementById('p_status').value = p.status||'idea';
-  document.getElementById('p_contact').value = p.contactId||'';
-  document.getElementById('p_app').value = p.linkedAppId||'';
-  document.getElementById('p_notes').value = p.notes||'';
-  document.getElementById('pitchOverlay').classList.add('active');
+  document.getElementById('materialModalTitle').textContent = isEdit?'Edit material':'New material';
+  document.getElementById('deleteMaterialBtn').style.display = isEdit?'inline-flex':'none';
+  const m = isEdit? DB.materials.find(x=>x.id===id) : {type: materialsTab};
+  document.getElementById('m_id').value = id||'';
+  document.getElementById('m_type').value = m.type||materialsTab;
+  document.getElementById('m_title').value = m.title||'';
+  document.getElementById('m_app').value = m.linkedAppId||'';
+  document.getElementById('m_company').value = m.company||'';
+  document.getElementById('m_link').value = m.link||'';
+  document.getElementById('m_content').value = m.content||'';
+  document.getElementById('materialOverlay').classList.add('active');
 }
-document.getElementById('addPitchBtn').addEventListener('click', ()=>openPitchModal(null));
-document.getElementById('savePitchBtn').addEventListener('click', async ()=>{
-  const id = document.getElementById('pitchId').value;
-  const data = {
-    title: document.getElementById('p_title').value.trim(), outlet: document.getElementById('p_outlet').value.trim(),
-    status: document.getElementById('p_status').value, contactId: document.getElementById('p_contact').value,
-    linkedAppId: document.getElementById('p_app').value, notes: document.getElementById('p_notes').value.trim(), updatedAt: Date.now()
-  };
-  if(!data.title){ alert('Give the pitch a title.'); return; }
-  const col = db.collection('users').doc(uid).collection('pitches');
-  if(id) await col.doc(id).update(data); else await col.add({...data, createdAt: Date.now()});
-  document.getElementById('pitchOverlay').classList.remove('active');
+document.getElementById('m_app').addEventListener('change', (e)=>{
+  const app = DB.apps.find(a=>a.id===e.target.value);
+  const companyField = document.getElementById('m_company');
+  if(app && !companyField.value) companyField.value = app.company;
 });
-document.getElementById('deletePitchBtn').addEventListener('click', async ()=>{
-  const id = document.getElementById('pitchId').value;
-  await db.collection('users').doc(uid).collection('pitches').doc(id).delete();
-  document.getElementById('pitchOverlay').classList.remove('active');
+document.getElementById('addMaterialBtn').addEventListener('click', ()=>openMaterialModal(null));
+document.getElementById('saveMaterialBtn').addEventListener('click', async ()=>{
+  const id = document.getElementById('m_id').value;
+  const data = {
+    type: document.getElementById('m_type').value, title: document.getElementById('m_title').value.trim(),
+    linkedAppId: document.getElementById('m_app').value, company: document.getElementById('m_company').value.trim(),
+    link: document.getElementById('m_link').value.trim(), content: document.getElementById('m_content').value.trim(), updatedAt: Date.now()
+  };
+  if(!data.title){ alert('Give it a title.'); return; }
+  const col = db.collection('users').doc(uid).collection('materials');
+  if(id) await col.doc(id).update(data); else await col.add({...data, createdAt: Date.now()});
+  document.getElementById('materialOverlay').classList.remove('active');
+});
+document.getElementById('deleteMaterialBtn').addEventListener('click', async ()=>{
+  const id = document.getElementById('m_id').value;
+  await db.collection('users').doc(uid).collection('materials').doc(id).delete();
+  document.getElementById('materialOverlay').classList.remove('active');
 });
 
 /* ---------------- CONTACTS ---------------- */
@@ -593,10 +630,9 @@ function renderContacts(){
   if(DB.contacts.length===0){ wrap.innerHTML = `<div class="empty"><b>Your contact book is empty</b>Add the people who got you in the door.</div>`; return; }
   wrap.innerHTML = DB.contacts.map(c=>{
     const apps = DB.apps.filter(a=>a.contactId===c.id);
-    const pitches = DB.pitches.filter(p=>p.contactId===c.id);
     return `<div class="item-card" data-id="${c.id}">
       <div class="item-title">${esc(c.name)}</div><div class="item-sub">${esc(c.role||'')}${c.org? ' · '+esc(c.org):''}</div>
-      ${apps.length||pitches.length? `<div class="link-chip">${apps.length} application(s), ${pitches.length} pitch(es) linked</div>`:''}
+      ${apps.length? `<div class="link-chip">${apps.length} application(s) linked</div>`:''}
     </div>`;
   }).join('');
   wrap.querySelectorAll('.item-card').forEach(c=>c.addEventListener('click',()=>openContactModal(c.dataset.id)));
@@ -616,10 +652,8 @@ function openContactModal(id){
   const linkedWrap = document.getElementById('c_linked');
   if(isEdit){
     const apps = DB.apps.filter(a=>a.contactId===id);
-    const pitches = DB.pitches.filter(p=>p.contactId===id);
-    linkedWrap.innerHTML = (apps.length||pitches.length)? `<label>Linked</label><div class="linked-list">
+    linkedWrap.innerHTML = apps.length? `<label>Linked</label><div class="linked-list">
       ${apps.map(a=>`<div class="linked-row"><span>${esc(a.role)} @ ${esc(a.company)}</span><span class="tag">${STAGES[a.stage]}</span></div>`).join('')}
-      ${pitches.map(p=>`<div class="linked-row"><span>${esc(p.title)}</span><span class="tag">${p.status}</span></div>`).join('')}
     </div>` : '';
   } else linkedWrap.innerHTML='';
   document.getElementById('contactOverlay').classList.add('active');
