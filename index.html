@@ -19,6 +19,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 
 <style>
 :root{
@@ -34,6 +35,11 @@
   --brick:#B23A2E;
   --line:#191510;
   --radius:12px;
+  --blue-desk:#5C84A6;
+  --blue-companies:#8FB4C9;
+  --blue-materials:#456B87;
+  --blue-sources:#3A5A72;
+  --blue-notebook:#A9CBDA;
 }
 *{box-sizing:border-box;}
 body{margin:0;background:var(--paper);color:var(--ink);font-family:'Space Grotesk',sans-serif;min-height:100vh;}
@@ -74,15 +80,19 @@ button{font-family:inherit;cursor:pointer;}
 .view{display:none;}
 .view.active{display:block;}
 
-.page-head{border-radius:var(--radius);padding:20px 24px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:flex-end;background:var(--magenta);}
+.page-head{border-radius:var(--radius);padding:20px 24px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:flex-end;background:var(--blue-desk);position:relative;overflow:hidden;}
+.cute-sparkle{position:absolute;top:14px;right:18px;color:rgba(255,255,255,0.55);}
+#view-companies .cute-sparkle, #view-notebook .cute-sparkle{color:rgba(25,21,16,0.35);}
 .page-title{font-family:'Anton',sans-serif;font-size:40px;letter-spacing:-1px;line-height:0.95;color:#fff;}
 .page-tag{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:rgba(255,255,255,0.75);margin-top:4px;text-transform:uppercase;}
-#view-companies .page-head{background:var(--mustard);}
+#view-companies .page-head{background:var(--blue-companies);}
 #view-companies .page-title, #view-companies .page-tag{color:var(--ink);}
 #view-companies .page-tag{color:rgba(25,21,16,0.6);}
-#view-materials .page-head{background:var(--dustyblue);}
-#view-sources .page-head{background:var(--olive);}
-#view-notebook .page-head{background:var(--brick);}
+#view-materials .page-head{background:var(--blue-materials);}
+#view-sources .page-head{background:var(--blue-sources);}
+#view-notebook .page-head{background:var(--blue-notebook);}
+#view-notebook .page-title, #view-notebook .page-tag{color:var(--ink);}
+#view-notebook .page-tag{color:rgba(25,21,16,0.6);}
 
 .toolbar{display:flex;justify-content:space-between;align-items:center;margin:18px 0;gap:10px;flex-wrap:wrap;}
 .toggle-group{display:flex;border:2px solid var(--ink);border-radius:var(--radius);overflow:hidden;}
@@ -135,6 +145,7 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
 .link-chip{font-size:10px;color:var(--magenta-deep);margin-top:7px;font-family:'IBM Plex Mono';}
 
 .empty{padding:36px 20px;text-align:center;color:var(--ink-dim);font-size:13px;border:2px dashed var(--ink);border-radius:var(--radius);}
+.empty::before{content:'';display:block;width:20px;height:20px;margin:0 auto 10px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23D6236A'%3E%3Cpath d='M12 2 L14.2 9.8 L22 12 L14.2 14.2 L12 22 L9.8 14.2 L2 12 L9.8 9.8 Z'/%3E%3C/svg%3E");background-size:contain;opacity:0.7;}
 .empty b{color:var(--ink);display:block;font-family:'Anton',sans-serif;font-size:18px;margin-bottom:5px;letter-spacing:0.5px;}
 
 /* ---------- INBOX BANNER ---------- */
@@ -171,7 +182,7 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
 <!-- LOGIN GATE -->
 <div id="loginGate">
   <div class="login-box">
-    <div class="login-title">DILETTANTE</div>
+    <div class="login-title" style="position:relative;">DILETTANTE<svg width="20" height="20" viewBox="0 0 24 24" fill="none" style="position:absolute;top:-6px;right:-14px;color:var(--magenta);" xmlns="http://www.w3.org/2000/svg"><path d="M12 2 L14.2 9.8 L22 12 L14.2 14.2 L12 22 L9.8 14.2 L2 12 L9.8 9.8 Z" fill="currentColor"/></svg></div>
     <div class="login-sub">sign in to sync your desk</div>
     <input type="email" id="loginEmail" placeholder="email">
     <input type="password" id="loginPass" placeholder="password">
@@ -192,7 +203,7 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
       <button class="nav-item active" data-view="desk">The Desk</button>
       <button class="nav-item" data-view="companies">Companies</button>
       <button class="nav-item" data-view="materials">Application Materials</button>
-      <button class="nav-item" data-view="sources">Sources</button>
+      <button class="nav-item" data-view="sources">Contacts</button>
       <button class="nav-item" data-view="notebook">Notebook</button>
       <div class="nav-badge" id="inboxNavBadge">📥 <span id="inboxCount">0</span> new from newsletters</div>
     </div>
@@ -203,7 +214,7 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
 
     <!-- DESK -->
     <div class="view active" id="view-desk">
-      <div class="page-head"><div><div class="page-title">The Desk</div><div class="page-tag">researching → applied → interview → decision</div></div></div>
+      <div class="page-head"><svg class="cute-sparkle" width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2 L14.2 9.8 L22 12 L14.2 14.2 L12 22 L9.8 14.2 L2 12 L9.8 9.8 Z" fill="currentColor"/></svg><div><div class="page-title">The Desk</div></div></div>
 
       <div class="inbox-banner" id="inboxBanner">
         <span id="inboxBannerText">0 new from your newsletters</span>
@@ -215,7 +226,7 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
         <div class="capture-label">Quick capture</div>
         <textarea id="captureInput" placeholder="Paste a job posting, newsletter blurb, or LinkedIn post here..."></textarea>
         <div class="capture-row">
-          <span class="capture-hint" id="captureHint">Free, built-in parser — add a Claude API key in Sources → Settings for sharper results.</span>
+          <span class="capture-hint" id="captureHint"></span>
           <button class="btn small" id="captureBtn">Parse &amp; add</button>
         </div>
       </div>
@@ -231,7 +242,7 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
 
     <!-- COMPANIES -->
     <div class="view" id="view-companies">
-      <div class="page-head"><div><div class="page-title">Companies</div><div class="page-tag">every org that touches a job, a pitch, or a person</div></div><button class="btn" id="addCompanyBtn">+ New company</button></div>
+      <div class="page-head"><svg class="cute-sparkle" width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2 L14.2 9.8 L22 12 L14.2 14.2 L12 22 L9.8 14.2 L2 12 L9.8 9.8 Z" fill="currentColor"/></svg><div><div class="page-title">Companies</div><div class="page-tag">every org that touches a job, a pitch, or a person</div></div><button class="btn" id="addCompanyBtn">+ New company</button></div>
       <div class="toolbar" style="margin-top:0;">
         <div class="toggle-group">
           <button class="co-tab on" data-tab="unsorted">General / Unsorted</button>
@@ -243,7 +254,7 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
 
     <!-- MATERIALS -->
     <div class="view" id="view-materials">
-      <div class="page-head"><div><div class="page-title">Application Materials</div><div class="page-tag">resumes, cover letters, and everything you send</div></div><button class="btn" id="addMaterialBtn">+ New material</button></div>
+      <div class="page-head"><svg class="cute-sparkle" width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2 L14.2 9.8 L22 12 L14.2 14.2 L12 22 L9.8 14.2 L2 12 L9.8 9.8 Z" fill="currentColor"/></svg><div><div class="page-title">Application Materials</div><div class="page-tag">resumes, cover letters, and everything you send</div></div><button class="btn" id="addMaterialBtn">+ New material</button></div>
       <div class="toolbar" style="margin-top:0;">
         <div class="toggle-group">
           <button class="mat-tab on" data-tab="resume">Resume</button>
@@ -256,13 +267,13 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
 
     <!-- SOURCES -->
     <div class="view" id="view-sources">
-      <div class="page-head"><div><div class="page-title">Sources</div><div class="page-tag">editors, referrals, and settings</div></div><div style="display:flex;gap:8px;"><button class="btn ghost" id="settingsBtn">Settings</button><button class="btn" id="addContactBtn">+ New source</button></div></div>
+      <div class="page-head"><svg class="cute-sparkle" width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2 L14.2 9.8 L22 12 L14.2 14.2 L12 22 L9.8 14.2 L2 12 L9.8 9.8 Z" fill="currentColor"/></svg><div><div class="page-title">Contacts</div><div class="page-tag">editors, referrals, and settings</div></div><div style="display:flex;gap:8px;"><button class="btn ghost" id="settingsBtn">Settings</button><button class="btn" id="addContactBtn">+ New contact</button></div></div>
       <div id="contactsWrap" class="grid"></div>
     </div>
 
     <!-- NOTEBOOK -->
     <div class="view" id="view-notebook">
-      <div class="page-head"><div><div class="page-title">Notebook</div><div class="page-tag">loose ideas before they're anything else</div></div><button class="btn" id="addNoteBtn">+ New entry</button></div>
+      <div class="page-head"><svg class="cute-sparkle" width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2 L14.2 9.8 L22 12 L14.2 14.2 L12 22 L9.8 14.2 L2 12 L9.8 9.8 Z" fill="currentColor"/></svg><div><div class="page-title">Notebook</div><div class="page-tag">loose ideas before they're anything else</div></div><button class="btn" id="addNoteBtn">+ New entry</button></div>
       <div id="notebookWrap" class="grid"></div>
     </div>
 
@@ -298,13 +309,16 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
       <div class="capture-label">Paste listing text</div>
       <textarea id="modalCaptureInput" placeholder="Paste the full job posting text here to auto-fill the fields below..."></textarea>
       <div class="capture-row">
-        <span class="capture-hint" id="modalCaptureHint">Free, built-in parser — add a Claude API key in Settings for sharper results.</span>
+        <span class="capture-hint" id="modalCaptureHint"></span>
         <button class="btn small" id="modalCaptureBtn">Parse &amp; fill</button>
       </div>
     </div>
     <input type="hidden" id="appId">
     <div class="field-row"><div class="field"><label>Role</label><input id="f_role"></div><div class="field"><label>Company</label><input id="f_company"></div></div>
     <div class="field-row"><div class="field"><label>Location</label><input id="f_location"></div><div class="field"><label>Pay range</label><input id="f_salary" placeholder="e.g. $55-65k"></div></div>
+    <div class="field"><label>Industry</label><select id="f_industry">
+      <option value="">— none —</option><option>Journalism / Media</option><option>Publishing</option><option>Marketing / Advertising</option><option>Art &amp; Museums</option><option>Consulting</option><option>Finance</option><option>Nonprofit</option><option>Technology</option><option>Education</option><option>Design / Creative</option><option>Other</option>
+    </select></div>
     <div class="field-row">
       <div class="field"><label>Stage</label><select id="f_stage">
         <option value="0">Researching</option><option value="1">Applied</option><option value="2">Interview</option><option value="3">Decision</option>
@@ -341,8 +355,12 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
       <div class="field"><label>Company</label><input id="m_company" placeholder="fills in if linked above"></div>
     </div>
     <div class="field"><label>Linked company record</label><select id="m_companyId"><option value="">— none —</option></select></div>
+    <div class="field"><label>Upload PDF</label><input type="file" id="m_pdf" accept="application/pdf">
+      <div id="m_pdf_current" style="font-size:11.5px;color:var(--ink-dim);margin-top:6px;"></div>
+    </div>
     <div class="field"><label>Link (Google Doc, Drive, etc.)</label><input id="m_link" placeholder="https://"></div>
     <div class="field"><label>Content / notes</label><textarea id="m_content" style="min-height:110px;" placeholder="Paste text, or leave notes about this version"></textarea></div>
+    <div id="m_upload_status" style="font-size:11.5px;color:var(--ink-dim);margin-bottom:8px;"></div>
     <div class="modal-actions"><button class="btn ghost" id="deleteMaterialBtn" style="display:none;">Delete</button><button class="btn" id="saveMaterialBtn">Save material</button></div>
   </div>
 </div>
@@ -381,6 +399,9 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
       <div class="field"><label>Location</label><input id="co_location" placeholder="e.g. New York, NY"></div>
       <div class="field"><label>Link (website, careers page, etc.)</label><input id="co_link" placeholder="https://"></div>
     </div>
+    <div class="field"><label>Industry</label><select id="co_industry">
+      <option value="">— none —</option><option>Journalism / Media</option><option>Publishing</option><option>Marketing / Advertising</option><option>Art &amp; Museums</option><option>Consulting</option><option>Finance</option><option>Nonprofit</option><option>Technology</option><option>Education</option><option>Design / Creative</option><option>Other</option>
+    </select></div>
     <div class="field"><label>Reached out? What do you want from them?</label><textarea id="co_outreach" placeholder="e.g. Emailed the design director 7/10 asking about freelance illustration work"></textarea></div>
     <div class="field"><label>Notes</label><textarea id="co_notes"></textarea></div>
     <div class="modal-actions">
@@ -419,12 +440,12 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
 <div class="overlay" id="contactOverlay">
   <div class="modal">
     <button class="close" data-close="contactOverlay">&times;</button>
-    <h2 id="contactModalTitle">New source</h2>
+    <h2 id="contactModalTitle">New contact</h2>
     <div class="capture" style="margin-bottom:16px;">
       <div class="capture-label">Paste bio, signature, or LinkedIn text</div>
       <textarea id="contactCaptureInput" placeholder="Paste an email signature, LinkedIn About section, or bio here to auto-fill the fields below..."></textarea>
       <div class="capture-row">
-        <span class="capture-hint" id="contactCaptureHint">Free, built-in parser — add a Claude API key in Settings for sharper results.</span>
+        <span class="capture-hint" id="contactCaptureHint"></span>
         <button class="btn small" id="contactCaptureBtn">Parse &amp; fill</button>
       </div>
     </div>
@@ -433,10 +454,13 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
     <div class="field-row"><div class="field"><label>Organization</label><input id="c_org"></div><div class="field"><label>Email</label><input id="c_email"></div></div>
     <div class="field"><label>Linked company record</label><select id="c_companyId"><option value="">— none —</option></select></div>
     <div class="field"><label>Location</label><input id="c_location" placeholder="e.g. Brooklyn, NY"></div>
+    <div class="field"><label>Industry</label><select id="c_industry">
+      <option value="">— none —</option><option>Journalism / Media</option><option>Publishing</option><option>Marketing / Advertising</option><option>Art &amp; Museums</option><option>Consulting</option><option>Finance</option><option>Nonprofit</option><option>Technology</option><option>Education</option><option>Design / Creative</option><option>Other</option>
+    </select></div>
     <div class="field"><label>How you know them</label><input id="c_how" placeholder="e.g. Dartmouth alum, editor at Fortune"></div>
     <div class="field"><label>Notes</label><textarea id="c_notes"></textarea></div>
     <div id="c_linked"></div>
-    <div class="modal-actions"><button class="btn ghost" id="deleteContactBtn" style="display:none;">Delete</button><button class="btn" id="saveContactBtn">Save source</button></div>
+    <div class="modal-actions"><button class="btn ghost" id="deleteContactBtn" style="display:none;">Delete</button><button class="btn" id="saveContactBtn">Save contact</button></div>
   </div>
 </div>
 
@@ -478,6 +502,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
+const storage = firebase.storage();
 
 let uid = null;
 let DB = {apps:[], materials:[], contacts:[], notes:[], companies:[]};
@@ -549,7 +574,7 @@ document.querySelectorAll('.nav-item').forEach(btn=>{
 
 /* ---------------- STAGE CONFIG ---------------- */
 const STAGES = ['Researching','Applied','Interview','Decision'];
-const STAGE_COLORS = ['#8FAE7D','#F0C36D','#F0729B','#E8916B'];
+const STAGE_COLORS = ['#1FA88A','#F2B705','#E23A8C','#F0592B'];
 
 function dotBadge(stageIdx, size){
   const count = 3 + stageIdx*3;
@@ -637,6 +662,7 @@ function openAppView(id){
   const contact = DB.contacts.find(c=>c.id===a.contactId);
   const rows = [];
   if(a.salary) rows.push(['Pay range', a.salary]);
+  if(a.industry) rows.push(['Industry', a.industry]);
   if(a.deadline){ const d=daysUntil(a.deadline); rows.push(['Deadline', a.deadline + (d!==null? ` (${d>=0? d+'d left':'past due'})`:'')]); }
   if(contact) rows.push(['Source', contact.name]);
   if(a.nextAction) rows.push(['Next action', a.nextAction]);
@@ -654,7 +680,7 @@ function renderViewMaterials(appId){
   const mats = DB.materials.filter(m=>m.linkedAppId===appId);
   wrap.innerHTML = `<label style="display:block;font-family:'IBM Plex Mono';font-size:10px;letter-spacing:0.5px;text-transform:uppercase;color:var(--ink-dim);margin:16px 0 6px;">Materials</label>` +
     (mats.length? `<div class="linked-list">${mats.map(m=>`
-      <div class="linked-row"><span>${esc(m.title||'(untitled)')} <span class="tag">${m.type}</span></span>${m.link? `<a href="${esc(m.link)}" target="_blank" rel="noopener">Open ↗</a>`:''}</div>`).join('')}</div>`
+      <div class="linked-row"><span>${esc(m.title||'(untitled)')} <span class="tag">${m.type}</span></span>${m.fileUrl? `<a href="${esc(m.fileUrl)}" target="_blank" rel="noopener">📄 ${esc(m.fileName||'PDF')} ↗</a>` : (m.link? `<a href="${esc(m.link)}" target="_blank" rel="noopener">Open ↗</a>`:'')}</div>`).join('')}</div>`
       : `<div style="font-size:12px;color:var(--ink-dim);">None linked yet.</div>`) +
     `<button class="btn small" id="viewAddMaterialBtn" style="margin-top:8px;">+ Link material</button>`;
   document.getElementById('viewAddMaterialBtn').addEventListener('click', ()=>{
@@ -734,7 +760,7 @@ function openCompanyView(id){
   const initial = (co.name||'?').trim()[0]?.toUpperCase() || '?';
   document.getElementById('co_view_badge').innerHTML = `<span class="co-circle" style="background:${companyColor(co.name)}">${initial}</span>`;
   document.getElementById('co_view_name').textContent = co.name;
-  document.getElementById('co_view_bank').innerHTML = `<span class="tag">${co.bank==='contacted'?'Contacted':'General / Unsorted'}</span>` + (co.location? ` <span class="tag">${esc(co.location)}</span>`:'') + (co.link? ` <a href="${esc(co.link)}" target="_blank" rel="noopener" class="tag" style="text-decoration:none;">Visit site ↗</a>`:'');
+  document.getElementById('co_view_bank').innerHTML = `<span class="tag">${co.bank==='contacted'?'Contacted':'General / Unsorted'}</span>` + (co.industry? ` <span class="tag">${esc(co.industry)}</span>`:'') + (co.location? ` <span class="tag">${esc(co.location)}</span>`:'') + (co.link? ` <a href="${esc(co.link)}" target="_blank" rel="noopener" class="tag" style="text-decoration:none;">Visit site ↗</a>`:'');
   document.getElementById('co_view_note').textContent = co.outreachNote || '';
 
   const apps = appsForCompany(co);
@@ -749,7 +775,7 @@ function openCompanyView(id){
 
   const mats = materialsForCompany(co);
   document.getElementById('co_view_materials').innerHTML = `<label style="display:block;font-family:'IBM Plex Mono';font-size:10px;letter-spacing:0.5px;text-transform:uppercase;color:var(--ink-dim);margin:16px 0 6px;">Materials</label>` +
-    (mats.length? `<div class="linked-list">${mats.map(m=>`<div class="linked-row"><span>${esc(m.title||'(untitled)')}</span><span class="tag">${m.type}</span></div>`).join('')}</div>` : `<div style="font-size:12px;color:var(--ink-dim);">None linked yet.</div>`) +
+    (mats.length? `<div class="linked-list">${mats.map(m=>`<div class="linked-row"><span>${esc(m.title||'(untitled)')}</span>${m.fileUrl? `<a href="${esc(m.fileUrl)}" target="_blank" rel="noopener">📄 ↗</a>` : `<span class="tag">${m.type}</span>`}</div>`).join('')}</div>` : `<div style="font-size:12px;color:var(--ink-dim);">None linked yet.</div>`) +
     `<button class="btn small" id="coAddMaterialBtn" style="margin-top:8px;">+ New material here</button>`;
 
   document.getElementById('companyViewOverlay').classList.add('active');
@@ -780,6 +806,7 @@ function openCompanyModal(id, prefillName){
   document.getElementById('co_bank').value = co.bank||'unsorted';
   document.getElementById('co_location').value = co.location||'';
   document.getElementById('co_link').value = co.link||'';
+  document.getElementById('co_industry').value = co.industry||'';
   document.getElementById('co_outreach').value = co.outreachNote||'';
   document.getElementById('co_notes').value = co.notes||'';
   document.getElementById('companyOverlay').classList.add('active');
@@ -792,6 +819,7 @@ document.getElementById('saveCompanyBtn').addEventListener('click', async ()=>{
     bank: document.getElementById('co_bank').value,
     location: document.getElementById('co_location').value.trim(),
     link: document.getElementById('co_link').value.trim(),
+    industry: document.getElementById('co_industry').value,
     outreachNote: document.getElementById('co_outreach').value.trim(),
     notes: document.getElementById('co_notes').value.trim(),
     updatedAt: Date.now()
@@ -967,6 +995,7 @@ function openAppModal(id, prefill){
   document.getElementById('f_company').value = a.company||'';
   document.getElementById('f_location').value = a.location||'';
   document.getElementById('f_salary').value = a.salary||'';
+  document.getElementById('f_industry').value = a.industry||'';
   document.getElementById('f_stage').value = a.stage!==undefined? a.stage:0;
   document.getElementById('f_deadline').value = a.deadline||'';
   document.getElementById('f_link').value = a.link||'';
@@ -991,6 +1020,7 @@ document.getElementById('saveAppBtn').addEventListener('click', async ()=>{
   const data = {
     role: document.getElementById('f_role').value.trim(), company: document.getElementById('f_company').value.trim(),
     location: document.getElementById('f_location').value.trim(), salary: document.getElementById('f_salary').value.trim(),
+    industry: document.getElementById('f_industry').value,
     stage: parseInt(document.getElementById('f_stage').value), deadline: document.getElementById('f_deadline').value,
     link: document.getElementById('f_link').value.trim(), companyId: document.getElementById('f_companyId').value,
     contactId: document.getElementById('f_contact').value,
@@ -1034,7 +1064,7 @@ function renderMaterials(){
       <div class="item-title">${esc(m.title||'(untitled)')}</div>
       <div class="item-sub">${esc(m.company||(app? app.company:'')||'')}</div>
       ${app? `<div class="link-chip">↳ ${esc(app.role)} @ ${esc(app.company)}</div>`:''}
-      ${m.link? `<div class="link-chip"><a href="${esc(m.link)}" target="_blank" rel="noopener">Open file ↗</a></div>`:''}
+      ${m.fileUrl? `<div class="link-chip"><a href="${esc(m.fileUrl)}" target="_blank" rel="noopener">📄 ${esc(m.fileName||'PDF')} ↗</a></div>` : (m.link? `<div class="link-chip"><a href="${esc(m.link)}" target="_blank" rel="noopener">Open file ↗</a></div>`:'')}
     </div>`;
   }).join('');
   wrap.querySelectorAll('.item-card').forEach(c=>c.addEventListener('click',()=>openMaterialModal(c.dataset.id)));
@@ -1059,6 +1089,10 @@ function openMaterialModal(id, prefillAppId, prefillCompanyId){
   document.getElementById('m_company').value = m.company || (linkedApp? linkedApp.company : (linkedCo? linkedCo.name : ''));
   document.getElementById('m_link').value = m.link||'';
   document.getElementById('m_content').value = m.content||'';
+  document.getElementById('m_pdf').value = '';
+  document.getElementById('m_upload_status').textContent = '';
+  const pdfCurrent = document.getElementById('m_pdf_current');
+  pdfCurrent.innerHTML = m.fileUrl? `📄 <a href="${esc(m.fileUrl)}" target="_blank" rel="noopener">${esc(m.fileName||'view file')}</a> &nbsp; <label style="cursor:pointer;"><input type="checkbox" id="m_pdf_remove"> remove</label>` : '';
   document.getElementById('materialOverlay').classList.add('active');
 }
 document.getElementById('m_app').addEventListener('change', (e)=>{
@@ -1068,7 +1102,10 @@ document.getElementById('m_app').addEventListener('change', (e)=>{
 });
 document.getElementById('addMaterialBtn').addEventListener('click', ()=>openMaterialModal(null));
 document.getElementById('saveMaterialBtn').addEventListener('click', async ()=>{
-  const id = document.getElementById('m_id').value;
+  const existingId = document.getElementById('m_id').value;
+  const id = existingId || uidGen();
+  const statusEl = document.getElementById('m_upload_status');
+  const saveBtn = document.getElementById('saveMaterialBtn');
   const data = {
     type: document.getElementById('m_type').value, title: document.getElementById('m_title').value.trim(),
     linkedAppId: document.getElementById('m_app').value, company: document.getElementById('m_company').value.trim(),
@@ -1076,12 +1113,42 @@ document.getElementById('saveMaterialBtn').addEventListener('click', async ()=>{
     link: document.getElementById('m_link').value.trim(), content: document.getElementById('m_content').value.trim(), updatedAt: Date.now()
   };
   if(!data.title){ alert('Give it a title.'); return; }
+  const fileInput = document.getElementById('m_pdf');
+  const removeCheckbox = document.getElementById('m_pdf_remove');
   const col = db.collection('users').doc(uid).collection('materials');
-  if(id) await col.doc(id).update(data); else await col.add({...data, createdAt: Date.now()});
-  document.getElementById('materialOverlay').classList.remove('active');
+  saveBtn.disabled = true;
+  try{
+    if(fileInput.files[0]){
+      const file = fileInput.files[0];
+      statusEl.textContent = 'Uploading PDF...';
+      const ref = storage.ref(`users/${uid}/materials/${id}/${file.name}`);
+      await ref.put(file);
+      data.fileUrl = await ref.getDownloadURL();
+      data.fileName = file.name;
+    } else if(removeCheckbox && removeCheckbox.checked){
+      const existing = DB.materials.find(x=>x.id===existingId);
+      if(existing && existing.fileUrl){
+        try{ await storage.refFromURL(existing.fileUrl).delete(); }catch(e){ console.error('Storage delete failed', e); }
+      }
+      data.fileUrl = firebase.firestore.FieldValue.delete();
+      data.fileName = firebase.firestore.FieldValue.delete();
+    }
+    if(!existingId) data.createdAt = Date.now();
+    await col.doc(id).set(data, {merge:true});
+    document.getElementById('materialOverlay').classList.remove('active');
+  }catch(e){
+    console.error(e);
+    statusEl.textContent = "Couldn't save — check the file and try again.";
+  }finally{
+    saveBtn.disabled = false;
+  }
 });
 document.getElementById('deleteMaterialBtn').addEventListener('click', async ()=>{
   const id = document.getElementById('m_id').value;
+  const existing = DB.materials.find(x=>x.id===id);
+  if(existing && existing.fileUrl){
+    try{ await storage.refFromURL(existing.fileUrl).delete(); }catch(e){ console.error('Storage delete failed', e); }
+  }
   await db.collection('users').doc(uid).collection('materials').doc(id).delete();
   document.getElementById('materialOverlay').classList.remove('active');
 });
@@ -1110,6 +1177,7 @@ function openContactView(id){
   document.getElementById('cv_company').innerHTML = co? `<a href="#" class="tag" data-goto-co="${co.id}" style="text-decoration:none;">→ Company page</a>` : '';
   const rows = [];
   if(c.location) rows.push(['Location', c.location]);
+  if(c.industry) rows.push(['Industry', c.industry]);
   if(c.email) rows.push(['Email', c.email]);
   if(c.how) rows.push(['How you know them', c.how]);
   document.getElementById('cv_fields').innerHTML = rows.map(([l,v])=>`<div class="linked-row"><span style="color:var(--ink-dim);">${esc(l)}</span><span>${esc(v)}</span></div>`).join('');
@@ -1152,17 +1220,17 @@ document.getElementById('cvEditBtn').addEventListener('click', ()=>{
   openContactModal(currentViewContactId);
 });
 document.getElementById('cvDeleteBtn').addEventListener('click', async ()=>{
-  if(!confirm('Delete this source?')) return;
+  if(!confirm('Delete this contact?')) return;
   await db.collection('users').doc(uid).collection('contacts').doc(currentViewContactId).delete();
   document.getElementById('contactViewOverlay').classList.remove('active');
 });
 
 function openContactModal(id, prefillCompanyId){
   const isEdit = !!id;
-  document.getElementById('contactModalTitle').textContent = isEdit?'Edit source':'New source';
+  document.getElementById('contactModalTitle').textContent = isEdit?'Edit contact':'New contact';
   document.getElementById('deleteContactBtn').style.display = isEdit?'inline-flex':'none';
   document.getElementById('contactCaptureInput').value = '';
-  document.getElementById('contactCaptureHint').textContent = 'Free, built-in parser — add a Claude API key in Settings for sharper results.';
+  document.getElementById('contactCaptureHint').textContent = '';
   const c = isEdit? DB.contacts.find(x=>x.id===id) : {companyId: prefillCompanyId||''};
   document.getElementById('c_id').value = id||'';
   document.getElementById('c_name').value = c.name||'';
@@ -1171,6 +1239,7 @@ function openContactModal(id, prefillCompanyId){
   document.getElementById('c_email').value = c.email||'';
   populateCompanySelect('c_companyId', c.companyId);
   document.getElementById('c_location').value = c.location||'';
+  document.getElementById('c_industry').value = c.industry||'';
   document.getElementById('c_how').value = c.how||'';
   document.getElementById('c_notes').value = c.notes||'';
   const linkedWrap = document.getElementById('c_linked');
@@ -1190,6 +1259,7 @@ document.getElementById('saveContactBtn').addEventListener('click', async ()=>{
     org: document.getElementById('c_org').value.trim(), email: document.getElementById('c_email').value.trim(),
     companyId: document.getElementById('c_companyId').value,
     location: document.getElementById('c_location').value.trim(),
+    industry: document.getElementById('c_industry').value,
     how: document.getElementById('c_how').value.trim(), notes: document.getElementById('c_notes').value.trim(), updatedAt: Date.now()
   };
   if(!data.name){ alert('Add a name.'); return; }
@@ -1297,7 +1367,7 @@ document.getElementById('captureBtn').addEventListener('click', async ()=>{
   try{
     const parsed = await parseListingText(raw);
     document.getElementById('captureInput').value = '';
-    hint.textContent = settings.apiKey? "Uses your Claude API key to pull out the details." : "Free parser — add a Claude API key in Sources → Settings for sharper results.";
+    hint.textContent = settings.apiKey? "Filled in with your Claude API key." : "";
     openAppModal(null, parsed);
   }catch(e){
     hint.textContent = "Couldn't parse that — add it manually below.";
@@ -1321,7 +1391,7 @@ document.getElementById('modalCaptureBtn').addEventListener('click', async ()=>{
     if(parsed.deadline) document.getElementById('f_deadline').value = parsed.deadline;
     if(parsed.nextAction) document.getElementById('f_next').value = parsed.nextAction;
     document.getElementById('modalCaptureInput').value = '';
-    hint.textContent = settings.apiKey? 'Filled in from the listing — check it over before saving.' : 'Free parser filled in what it could — check it over, and add an API key in Settings for sharper results.';
+    hint.textContent = settings.apiKey? 'Filled in from the listing — check it over before saving.' : 'Filled in what it could — check it over before saving.';
   }catch(e){
     hint.textContent = "Couldn't parse that — fill in the fields manually.";
     console.error(e);
@@ -1343,7 +1413,7 @@ document.getElementById('contactCaptureBtn').addEventListener('click', async ()=
     if(parsed.location) document.getElementById('c_location').value = parsed.location;
     if(parsed.how) document.getElementById('c_how').value = parsed.how;
     document.getElementById('contactCaptureInput').value = '';
-    hint.textContent = settings.apiKey? 'Filled in from the text — check it over before saving.' : 'Free parser filled in what it could — check it over, and add an API key in Settings for sharper results.';
+    hint.textContent = settings.apiKey? 'Filled in from the text — check it over before saving.' : 'Filled in what it could — check it over before saving.';
   }catch(e){
     hint.textContent = "Couldn't parse that — fill in the fields manually.";
     console.error(e);
