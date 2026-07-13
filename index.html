@@ -372,6 +372,10 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
         <option value="unsorted">General / Unsorted</option><option value="contacted">Contacted</option>
       </select></div>
     </div>
+    <div class="field-row">
+      <div class="field"><label>Location</label><input id="co_location" placeholder="e.g. New York, NY"></div>
+      <div class="field"><label>Link (website, careers page, etc.)</label><input id="co_link" placeholder="https://"></div>
+    </div>
     <div class="field"><label>Reached out? What do you want from them?</label><textarea id="co_outreach" placeholder="e.g. Emailed the design director 7/10 asking about freelance illustration work"></textarea></div>
     <div class="field"><label>Notes</label><textarea id="co_notes"></textarea></div>
     <div class="modal-actions">
@@ -390,6 +394,7 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
     <div class="field-row"><div class="field"><label>Name</label><input id="c_name"></div><div class="field"><label>Title</label><input id="c_role"></div></div>
     <div class="field-row"><div class="field"><label>Organization</label><input id="c_org"></div><div class="field"><label>Email</label><input id="c_email"></div></div>
     <div class="field"><label>Linked company record</label><select id="c_companyId"><option value="">— none —</option></select></div>
+    <div class="field"><label>Location</label><input id="c_location" placeholder="e.g. Brooklyn, NY"></div>
     <div class="field"><label>How you know them</label><input id="c_how" placeholder="e.g. Dartmouth alum, editor at Fortune"></div>
     <div class="field"><label>Notes</label><textarea id="c_notes"></textarea></div>
     <div id="c_linked"></div>
@@ -675,7 +680,7 @@ function renderCompanies(){
     return `<div class="item-card" data-id="${co.id}">
       <div style="display:flex;align-items:center;gap:10px;">
         <span class="co-circle" style="background:${companyColor(co.name)}">${initial}</span>
-        <div><div class="item-title">${esc(co.name)}</div>${co.outreachNote? `<div class="item-sub" style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(co.outreachNote)}</div>`:''}</div>
+        <div><div class="item-title">${esc(co.name)}</div>${co.location? `<div class="item-sub">${esc(co.location)}</div>`:''}${co.outreachNote? `<div class="item-sub" style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(co.outreachNote)}</div>`:''}</div>
       </div>
       ${(apps.length||contacts.length)? `<div class="link-chip">${apps.length} application(s), ${contacts.length} contact(s) linked</div>`:''}
     </div>`;
@@ -691,7 +696,7 @@ function openCompanyView(id){
   const initial = (co.name||'?').trim()[0]?.toUpperCase() || '?';
   document.getElementById('co_view_badge').innerHTML = `<span class="co-circle" style="background:${companyColor(co.name)}">${initial}</span>`;
   document.getElementById('co_view_name').textContent = co.name;
-  document.getElementById('co_view_bank').innerHTML = `<span class="tag">${co.bank==='contacted'?'Contacted':'General / Unsorted'}</span>`;
+  document.getElementById('co_view_bank').innerHTML = `<span class="tag">${co.bank==='contacted'?'Contacted':'General / Unsorted'}</span>` + (co.location? ` <span class="tag">${esc(co.location)}</span>`:'') + (co.link? ` <a href="${esc(co.link)}" target="_blank" rel="noopener" class="tag" style="text-decoration:none;">Visit site ↗</a>`:'');
   document.getElementById('co_view_note').textContent = co.outreachNote || '';
 
   const apps = appsForCompany(co);
@@ -735,6 +740,8 @@ function openCompanyModal(id, prefillName){
   document.getElementById('co_id').value = id||'';
   document.getElementById('co_name').value = co.name||'';
   document.getElementById('co_bank').value = co.bank||'unsorted';
+  document.getElementById('co_location').value = co.location||'';
+  document.getElementById('co_link').value = co.link||'';
   document.getElementById('co_outreach').value = co.outreachNote||'';
   document.getElementById('co_notes').value = co.notes||'';
   document.getElementById('companyOverlay').classList.add('active');
@@ -745,6 +752,8 @@ document.getElementById('saveCompanyBtn').addEventListener('click', async ()=>{
   const data = {
     name: document.getElementById('co_name').value.trim(),
     bank: document.getElementById('co_bank').value,
+    location: document.getElementById('co_location').value.trim(),
+    link: document.getElementById('co_link').value.trim(),
     outreachNote: document.getElementById('co_outreach').value.trim(),
     notes: document.getElementById('co_notes').value.trim(),
     updatedAt: Date.now()
@@ -920,7 +929,7 @@ function renderContacts(){
   wrap.innerHTML = DB.contacts.map(c=>{
     const apps = DB.apps.filter(a=>a.contactId===c.id);
     return `<div class="item-card" data-id="${c.id}">
-      <div class="item-title">${esc(c.name)}</div><div class="item-sub">${esc(c.role||'')}${c.org? ' · '+esc(c.org):''}</div>
+      <div class="item-title">${esc(c.name)}</div><div class="item-sub">${esc(c.role||'')}${c.org? ' · '+esc(c.org):''}</div>${c.location? `<div class="item-sub">${esc(c.location)}</div>`:''}
       ${apps.length? `<div class="link-chip">${apps.length} application(s) linked</div>`:''}
     </div>`;
   }).join('');
@@ -937,6 +946,7 @@ function openContactModal(id, prefillCompanyId){
   document.getElementById('c_org').value = c.org||'';
   document.getElementById('c_email').value = c.email||'';
   populateCompanySelect('c_companyId', c.companyId);
+  document.getElementById('c_location').value = c.location||'';
   document.getElementById('c_how').value = c.how||'';
   document.getElementById('c_notes').value = c.notes||'';
   const linkedWrap = document.getElementById('c_linked');
@@ -955,6 +965,7 @@ document.getElementById('saveContactBtn').addEventListener('click', async ()=>{
     name: document.getElementById('c_name').value.trim(), role: document.getElementById('c_role').value.trim(),
     org: document.getElementById('c_org').value.trim(), email: document.getElementById('c_email').value.trim(),
     companyId: document.getElementById('c_companyId').value,
+    location: document.getElementById('c_location').value.trim(),
     how: document.getElementById('c_how').value.trim(), notes: document.getElementById('c_notes').value.trim(), updatedAt: Date.now()
   };
   if(!data.name){ alert('Add a name.'); return; }
