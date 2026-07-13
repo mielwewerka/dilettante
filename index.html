@@ -385,6 +385,31 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
   </div>
 </div>
 
+<!-- CONTACT VIEW MODAL (read-only) -->
+<div class="overlay" id="contactViewOverlay">
+  <div class="modal">
+    <button class="close" data-close="contactViewOverlay">&times;</button>
+    <h2 id="cv_name" style="margin-bottom:2px;"></h2>
+    <div class="item-sub" id="cv_sub" style="margin-bottom:12px;"></div>
+    <div id="cv_company"></div>
+    <div class="linked-list" id="cv_fields"></div>
+    <div class="item-sub" id="cv_notes" style="margin-top:12px;white-space:pre-wrap;color:var(--ink);"></div>
+
+    <label style="display:block;font-family:'IBM Plex Mono';font-size:10px;letter-spacing:0.5px;text-transform:uppercase;color:var(--ink-dim);margin:18px 0 6px;">Updates</label>
+    <div id="cv_updates" class="linked-list"></div>
+    <div class="field-row" style="margin-top:10px;align-items:flex-end;">
+      <div class="field" style="flex:0 0 130px;"><label>Date</label><input type="date" id="cv_update_date"></div>
+      <div class="field"><label>What happened</label><input id="cv_update_text" placeholder="e.g. Emailed asking about internship"></div>
+      <button class="btn small" id="cv_add_update" style="margin-bottom:13px;">+ Add</button>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn ghost" id="cvDeleteBtn">Delete</button>
+      <button class="btn" id="cvEditBtn">Edit</button>
+    </div>
+  </div>
+</div>
+
 <!-- CONTACT MODAL -->
 <div class="overlay" id="contactOverlay">
   <div class="modal">
@@ -717,7 +742,7 @@ function openCompanyView(id){
   document.getElementById('companyViewOverlay').classList.add('active');
 
   document.querySelectorAll('[data-goto-app]').forEach(el=>el.addEventListener('click', ()=>{ document.getElementById('companyViewOverlay').classList.remove('active'); openAppView(el.dataset.gotoApp); }));
-  document.querySelectorAll('[data-goto-contact]').forEach(el=>el.addEventListener('click', ()=>{ document.getElementById('companyViewOverlay').classList.remove('active'); openContactModal(el.dataset.gotoContact); }));
+  document.querySelectorAll('[data-goto-contact]').forEach(el=>el.addEventListener('click', ()=>{ document.getElementById('companyViewOverlay').classList.remove('active'); openContactView(el.dataset.gotoContact); }));
   document.getElementById('coAddAppBtn').addEventListener('click', ()=>{ document.getElementById('companyViewOverlay').classList.remove('active'); openAppModal(null, {company: co.name, companyId: co.id}); });
   document.getElementById('coAddContactBtn').addEventListener('click', ()=>{ document.getElementById('companyViewOverlay').classList.remove('active'); openContactModal(null, co.id); });
   document.getElementById('coAddMaterialBtn').addEventListener('click', ()=>{ document.getElementById('companyViewOverlay').classList.remove('active'); openMaterialModal(null, null, co.id); });
@@ -977,8 +1002,66 @@ function renderContacts(){
       ${apps.length? `<div class="link-chip">${apps.length} application(s) linked</div>`:''}
     </div>`;
   }).join('');
-  wrap.querySelectorAll('.item-card').forEach(c=>c.addEventListener('click',()=>openContactModal(c.dataset.id)));
+  wrap.querySelectorAll('.item-card').forEach(c=>c.addEventListener('click',()=>openContactView(c.dataset.id)));
 }
+let currentViewContactId = null;
+function openContactView(id){
+  const c = DB.contacts.find(x=>x.id===id);
+  if(!c) return;
+  currentViewContactId = id;
+  document.getElementById('cv_name').textContent = c.name;
+  document.getElementById('cv_sub').textContent = [c.role, c.org].filter(Boolean).join(' · ');
+  const co = c.companyId? DB.companies.find(x=>x.id===c.companyId) : (c.org? DB.companies.find(x=>x.name && x.name.toLowerCase()===c.org.toLowerCase()) : null);
+  document.getElementById('cv_company').innerHTML = co? `<a href="#" class="tag" data-goto-co="${co.id}" style="text-decoration:none;">→ Company page</a>` : '';
+  const rows = [];
+  if(c.location) rows.push(['Location', c.location]);
+  if(c.email) rows.push(['Email', c.email]);
+  if(c.how) rows.push(['How you know them', c.how]);
+  document.getElementById('cv_fields').innerHTML = rows.map(([l,v])=>`<div class="linked-row"><span style="color:var(--ink-dim);">${esc(l)}</span><span>${esc(v)}</span></div>`).join('');
+  const notesEl = document.getElementById('cv_notes');
+  notesEl.textContent = c.notes || '';
+  notesEl.style.display = c.notes? 'block':'none';
+  document.getElementById('cv_update_date').value = new Date().toISOString().slice(0,10);
+  document.getElementById('cv_update_text').value = '';
+  renderContactUpdates(c);
+  document.getElementById('contactViewOverlay').classList.add('active');
+  const gotoCoBtn = document.querySelector('[data-goto-co]');
+  if(gotoCoBtn) gotoCoBtn.addEventListener('click', (e)=>{ e.preventDefault(); document.getElementById('contactViewOverlay').classList.remove('active'); openCompanyView(gotoCoBtn.dataset.gotoCo); });
+}
+function renderContactUpdates(c){
+  const wrap = document.getElementById('cv_updates');
+  const updates = (c.updates||[]).slice().sort((a,b)=> b.date.localeCompare(a.date));
+  wrap.innerHTML = updates.length? updates.map(u=>`
+    <div class="linked-row"><span><span class="tag" style="margin-right:8px;">${u.date}</span>${esc(u.text)}</span><a href="#" data-delete-update="${u.id}" style="color:var(--brick);">×</a></div>`).join('')
+    : `<div style="font-size:12px;color:var(--ink-dim);">No updates logged yet.</div>`;
+  wrap.querySelectorAll('[data-delete-update]').forEach(el=>el.addEventListener('click', async (e)=>{
+    e.preventDefault();
+    const fresh = DB.contacts.find(x=>x.id===currentViewContactId);
+    const newUpdates = (fresh.updates||[]).filter(u=>u.id!==el.dataset.deleteUpdate);
+    await db.collection('users').doc(uid).collection('contacts').doc(currentViewContactId).update({updates:newUpdates});
+    renderContactUpdates({...fresh, updates:newUpdates});
+  }));
+}
+document.getElementById('cv_add_update').addEventListener('click', async ()=>{
+  const date = document.getElementById('cv_update_date').value;
+  const text = document.getElementById('cv_update_text').value.trim();
+  if(!date || !text) return;
+  const fresh = DB.contacts.find(x=>x.id===currentViewContactId);
+  const newUpdates = [...(fresh.updates||[]), {id:uidGen(), date, text}];
+  await db.collection('users').doc(uid).collection('contacts').doc(currentViewContactId).update({updates:newUpdates});
+  document.getElementById('cv_update_text').value = '';
+  renderContactUpdates({...fresh, updates:newUpdates});
+});
+document.getElementById('cvEditBtn').addEventListener('click', ()=>{
+  document.getElementById('contactViewOverlay').classList.remove('active');
+  openContactModal(currentViewContactId);
+});
+document.getElementById('cvDeleteBtn').addEventListener('click', async ()=>{
+  if(!confirm('Delete this source?')) return;
+  await db.collection('users').doc(uid).collection('contacts').doc(currentViewContactId).delete();
+  document.getElementById('contactViewOverlay').classList.remove('active');
+});
+
 function openContactModal(id, prefillCompanyId){
   const isEdit = !!id;
   document.getElementById('contactModalTitle').textContent = isEdit?'Edit source':'New source';
