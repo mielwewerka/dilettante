@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Dilettante</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Anton&family=Fredoka:wght@500;600&family=Space+Grotesk:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Grotesk:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 
 <!-- ===================== FIREBASE SETUP =====================
 1. Create a project at https://console.firebase.google.com
@@ -64,7 +64,7 @@ button{font-family:inherit;cursor:pointer;}
 .brand{font-family:'Anton',sans-serif;font-size:26px;letter-spacing:0.5px;line-height:1;}
 .brand-sub{font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:var(--ink-dim);letter-spacing:1px;margin-top:4px;text-transform:uppercase;}
 .nav{padding:14px 12px;}
-.nav-item{display:flex;align-items:center;gap:9px;padding:10px 10px;border:none;background:none;width:100%;text-align:left;font-family:'Fredoka',sans-serif;font-size:13.5px;color:var(--ink);border-radius:var(--radius);margin-bottom:3px;}
+.nav-item{display:flex;align-items:center;gap:9px;padding:10px 10px;border:none;background:none;width:100%;text-align:left;font-family:'Space Grotesk',sans-serif;font-size:13.5px;color:var(--ink);border-radius:var(--radius);margin-bottom:3px;}
 .nav-item:hover{background:var(--paper);}
 .nav-item.active{background:var(--ink);color:var(--paper);}
 .nav-badge{margin-top:12px;background:var(--mustard);border:1px solid var(--ink);padding:8px 10px;font-family:'IBM Plex Mono';font-size:10.5px;cursor:pointer;display:none;}
@@ -83,7 +83,7 @@ button{font-family:inherit;cursor:pointer;}
 .toggle-group{display:flex;border:2px solid var(--ink);}
 .toggle-group button{background:var(--paper-raised);border:none;padding:7px 16px;font-size:11.5px;font-family:'IBM Plex Mono';text-transform:uppercase;}
 .toggle-group button.on{background:var(--ink);color:var(--paper);}
-.btn{background:var(--ink);color:var(--paper);border:2px solid var(--ink);padding:9px 16px;font-size:13px;font-weight:600;font-family:'Fredoka';display:inline-flex;align-items:center;gap:6px;}
+.btn{background:var(--ink);color:var(--paper);border:2px solid var(--ink);padding:9px 16px;font-size:13px;font-weight:600;font-family:'Space Grotesk';display:inline-flex;align-items:center;gap:6px;}
 .btn:hover{background:var(--magenta-deep);border-color:var(--magenta-deep);}
 .btn.ghost{background:var(--paper-raised);color:var(--brick);border-color:var(--brick);}
 .btn.small{padding:5px 10px;font-size:11.5px;}
@@ -96,10 +96,10 @@ button{font-family:inherit;cursor:pointer;}
 .capture-hint{font-size:11px;color:var(--ink-dim);}
 
 /* ---------- BOARD ---------- */
-.board{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;align-items:start;}
+.board{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;align-items:start;}
 .column{border:2px solid var(--ink);background:var(--paper-raised);min-height:110px;}
 .column-head{padding:9px 10px;color:#fff;display:flex;align-items:center;gap:8px;}
-.column-title{font-family:'Fredoka';font-size:12.5px;font-weight:600;}
+.column-title{font-family:'Space Grotesk';font-size:12.5px;font-weight:600;}
 .column-count{margin-left:auto;font-family:'IBM Plex Mono';font-size:11px;}
 .column-body{padding:9px;display:flex;flex-direction:column;gap:8px;min-height:60px;}
 .column-body.dragover{background:var(--paper);}
@@ -116,7 +116,7 @@ table{width:100%;border-collapse:collapse;background:var(--paper-raised);border:
 th,td{padding:9px 11px;text-align:left;border-bottom:1px solid var(--ink);font-size:12.5px;}
 th{font-family:'IBM Plex Mono';font-size:10px;text-transform:uppercase;background:var(--ink);color:var(--paper);}
 tr.row:hover{background:var(--paper);cursor:pointer;}
-.stage-pill{font-family:'IBM Plex Mono';font-size:9.5px;padding:3px 8px;color:#fff;display:inline-block;}
+.stage-pill{font-family:'IBM Plex Mono';font-size:9.5px;padding:3px 10px;color:#fff;display:inline-block;border-radius:999px;}
 
 /* ---------- GRID CARDS ---------- */
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;}
@@ -125,14 +125,15 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
 .item-title{font-weight:600;font-size:14px;}
 .item-sub{font-size:12px;color:var(--ink-dim);margin-top:2px;}
 .item-tags{margin-top:9px;display:flex;gap:6px;flex-wrap:wrap;}
-.tag{font-family:'IBM Plex Mono';font-size:9.5px;padding:2px 7px;border:1px solid var(--ink);color:var(--ink-dim);}
+.tag{font-family:'IBM Plex Mono';font-size:9.5px;padding:2px 9px;border:1px solid var(--ink);color:var(--ink-dim);border-radius:999px;}
+.co-circle{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;color:#fff;font-family:'Anton',sans-serif;font-size:13px;flex-shrink:0;}
 .link-chip{font-size:10px;color:var(--magenta-deep);margin-top:7px;font-family:'IBM Plex Mono';}
 
 .empty{padding:36px 20px;text-align:center;color:var(--ink-dim);font-size:13px;border:2px dashed var(--ink);}
 .empty b{color:var(--ink);display:block;font-family:'Anton',sans-serif;font-size:18px;margin-bottom:5px;letter-spacing:0.5px;}
 
 /* ---------- INBOX BANNER ---------- */
-.inbox-banner{background:var(--magenta);color:#fff;border:2px solid var(--ink);padding:10px 14px;margin-bottom:16px;display:none;align-items:center;justify-content:space-between;font-family:'Fredoka';font-size:13px;}
+.inbox-banner{background:var(--magenta);color:#fff;border:2px solid var(--ink);padding:10px 14px;margin-bottom:16px;display:none;align-items:center;justify-content:space-between;font-family:'Space Grotesk';font-size:13px;}
 .inbox-banner.show{display:flex;}
 .inbox-list{display:none;flex-direction:column;gap:8px;margin-bottom:16px;}
 .inbox-list.show{display:flex;}
@@ -184,6 +185,7 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
     </div>
     <div class="nav">
       <button class="nav-item active" data-view="desk">The Desk</button>
+      <button class="nav-item" data-view="companies">Companies</button>
       <button class="nav-item" data-view="materials">Application Materials</button>
       <button class="nav-item" data-view="sources">Sources</button>
       <button class="nav-item" data-view="notebook">Notebook</button>
@@ -196,7 +198,7 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
 
     <!-- DESK -->
     <div class="view active" id="view-desk">
-      <div class="page-head"><div><div class="page-title">The Desk</div><div class="page-tag">researching → pitched → applied → interview → decision</div></div></div>
+      <div class="page-head"><div><div class="page-title">The Desk</div><div class="page-tag">researching → applied → interview → decision</div></div></div>
 
       <div class="inbox-banner" id="inboxBanner">
         <span id="inboxBannerText">0 new from your newsletters</span>
@@ -220,6 +222,18 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
 
       <div id="boardWrap" class="board"></div>
       <div id="listWrap" style="display:none;"></div>
+    </div>
+
+    <!-- COMPANIES -->
+    <div class="view" id="view-companies">
+      <div class="page-head"><div><div class="page-title">Companies</div><div class="page-tag">every org that touches a job, a pitch, or a person</div></div><button class="btn" id="addCompanyBtn">+ New company</button></div>
+      <div class="toolbar" style="margin-top:0;">
+        <div class="toggle-group">
+          <button class="co-tab on" data-tab="unsorted">General / Unsorted</button>
+          <button class="co-tab" data-tab="contacted">Contacted</button>
+        </div>
+      </div>
+      <div id="companiesWrap" class="grid"></div>
     </div>
 
     <!-- MATERIALS -->
@@ -288,11 +302,12 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
     <div class="field-row"><div class="field"><label>Location</label><input id="f_location"></div><div class="field"><label>Pay range</label><input id="f_salary" placeholder="e.g. $55-65k"></div></div>
     <div class="field-row">
       <div class="field"><label>Stage</label><select id="f_stage">
-        <option value="0">Researching</option><option value="1">Pitched</option><option value="2">Applied</option><option value="3">Interview</option><option value="4">Decision</option>
+        <option value="0">Researching</option><option value="1">Applied</option><option value="2">Interview</option><option value="3">Decision</option>
       </select></div>
       <div class="field"><label>Deadline</label><input type="date" id="f_deadline"></div>
     </div>
     <div class="field"><label>Posting link</label><input id="f_link" placeholder="https://"></div>
+    <div class="field"><label>Linked company record</label><select id="f_companyId"><option value="">— none —</option></select></div>
     <div class="field"><label>Source / referral</label><select id="f_contact"><option value="">— none —</option></select></div>
     <div class="field"><label>Next action</label><input id="f_next" placeholder="e.g. Follow up with editor Thursday"></div>
     <div class="field"><label>Notes</label><textarea id="f_notes"></textarea></div>
@@ -320,9 +335,49 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
       <div class="field"><label>Linked application</label><select id="m_app"><option value="">— none —</option></select></div>
       <div class="field"><label>Company</label><input id="m_company" placeholder="fills in if linked above"></div>
     </div>
+    <div class="field"><label>Linked company record</label><select id="m_companyId"><option value="">— none —</option></select></div>
     <div class="field"><label>Link (Google Doc, Drive, etc.)</label><input id="m_link" placeholder="https://"></div>
     <div class="field"><label>Content / notes</label><textarea id="m_content" style="min-height:110px;" placeholder="Paste text, or leave notes about this version"></textarea></div>
     <div class="modal-actions"><button class="btn ghost" id="deleteMaterialBtn" style="display:none;">Delete</button><button class="btn" id="saveMaterialBtn">Save material</button></div>
+  </div>
+</div>
+
+<!-- COMPANY VIEW MODAL (read-only) -->
+<div class="overlay" id="companyViewOverlay">
+  <div class="modal">
+    <button class="close" data-close="companyViewOverlay">&times;</button>
+    <div id="co_view_badge" style="margin-bottom:8px;"></div>
+    <h2 id="co_view_name" style="margin-bottom:2px;"></h2>
+    <div class="item-sub" id="co_view_bank" style="font-size:12px;margin-bottom:12px;"></div>
+    <div class="item-sub" id="co_view_note" style="white-space:pre-wrap;color:var(--ink);margin-bottom:6px;"></div>
+    <div id="co_view_apps"></div>
+    <div id="co_view_contacts"></div>
+    <div id="co_view_materials"></div>
+    <div class="modal-actions">
+      <button class="btn ghost" id="coViewDeleteBtn">Delete</button>
+      <button class="btn" id="coViewEditBtn">Edit</button>
+    </div>
+  </div>
+</div>
+
+<!-- COMPANY MODAL -->
+<div class="overlay" id="companyOverlay">
+  <div class="modal">
+    <button class="close" data-close="companyOverlay">&times;</button>
+    <h2 id="companyModalTitle">New company</h2>
+    <input type="hidden" id="co_id">
+    <div class="field-row">
+      <div class="field"><label>Name</label><input id="co_name"></div>
+      <div class="field"><label>Bank</label><select id="co_bank">
+        <option value="unsorted">General / Unsorted</option><option value="contacted">Contacted</option>
+      </select></div>
+    </div>
+    <div class="field"><label>Reached out? What do you want from them?</label><textarea id="co_outreach" placeholder="e.g. Emailed the design director 7/10 asking about freelance illustration work"></textarea></div>
+    <div class="field"><label>Notes</label><textarea id="co_notes"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn ghost" id="deleteCompanyBtn" style="display:none;">Delete</button>
+      <button class="btn" id="saveCompanyBtn">Save company</button>
+    </div>
   </div>
 </div>
 
@@ -334,6 +389,7 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
     <input type="hidden" id="c_id">
     <div class="field-row"><div class="field"><label>Name</label><input id="c_name"></div><div class="field"><label>Title</label><input id="c_role"></div></div>
     <div class="field-row"><div class="field"><label>Organization</label><input id="c_org"></div><div class="field"><label>Email</label><input id="c_email"></div></div>
+    <div class="field"><label>Linked company record</label><select id="c_companyId"><option value="">— none —</option></select></div>
     <div class="field"><label>How you know them</label><input id="c_how" placeholder="e.g. Dartmouth alum, editor at Fortune"></div>
     <div class="field"><label>Notes</label><textarea id="c_notes"></textarea></div>
     <div id="c_linked"></div>
@@ -381,7 +437,7 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 
 let uid = null;
-let DB = {apps:[], materials:[], contacts:[], notes:[]};
+let DB = {apps:[], materials:[], contacts:[], notes:[], companies:[]};
 let inboxItems = [];
 let settings = {apiKey:''};
 let unsubs = [];
@@ -424,6 +480,7 @@ function attachListeners(){
   }));
   unsubs.push(col('materials').onSnapshot(snap=>{ DB.materials = snap.docs.map(d=>({id:d.id, ...d.data()})); renderMaterials(); }));
   unsubs.push(col('contacts').onSnapshot(snap=>{ DB.contacts = snap.docs.map(d=>({id:d.id, ...d.data()})); renderContacts(); }));
+  unsubs.push(col('companies').onSnapshot(snap=>{ DB.companies = snap.docs.map(d=>({id:d.id, ...d.data()})); renderCompanies(); }));
   unsubs.push(col('notes').onSnapshot(snap=>{ DB.notes = snap.docs.map(d=>({id:d.id, ...d.data()})); renderNotebook(); }));
   unsubs.push(db.collection('users').doc(uid).collection('settings').doc('main').onSnapshot(doc=>{
     settings = doc.exists ? doc.data() : {apiKey:''};
@@ -448,8 +505,8 @@ document.querySelectorAll('.nav-item').forEach(btn=>{
 });
 
 /* ---------------- STAGE CONFIG ---------------- */
-const STAGES = ['Researching','Pitched','Applied','Interview','Decision'];
-const STAGE_COLORS = ['#767A3D','#5E8CA3','#E8AE33','#D6236A','#B23A2E'];
+const STAGES = ['Researching','Applied','Interview','Decision'];
+const STAGE_COLORS = ['#767A3D','#E8AE33','#D6236A','#B23A2E'];
 
 function dotBadge(stageIdx, size){
   const count = 3 + stageIdx*3;
@@ -531,7 +588,8 @@ function openAppView(id){
   currentViewAppId = id;
   document.getElementById('view_stage_badge').innerHTML = `<span class="stage-pill" style="background:${STAGE_COLORS[a.stage]}">${STAGES[a.stage]}</span>`;
   document.getElementById('view_role').textContent = a.role;
-  document.getElementById('view_company').textContent = a.company + (a.location? ' · '+a.location : '');
+  const co = companyForApp(a);
+  document.getElementById('view_company').innerHTML = esc(a.company + (a.location? ' · '+a.location : '')) + (co? ` <a href="#" class="tag" data-goto-company="${co.id}" style="text-decoration:none;">→ Company page</a>`:'');
   document.getElementById('view_link').innerHTML = a.link? `<a href="${esc(a.link)}" target="_blank" rel="noopener" class="tag" style="display:inline-flex;padding:6px 10px;text-decoration:none;margin-bottom:12px;">View posting ↗</a>` : '';
   const contact = DB.contacts.find(c=>c.id===a.contactId);
   const rows = [];
@@ -545,6 +603,8 @@ function openAppView(id){
   notesEl.style.display = a.notes? 'block':'none';
   renderViewMaterials(id);
   document.getElementById('appViewOverlay').classList.add('active');
+  const gotoBtn = document.querySelector('[data-goto-company]');
+  if(gotoBtn) gotoBtn.addEventListener('click', (e)=>{ e.preventDefault(); document.getElementById('appViewOverlay').classList.remove('active'); openCompanyView(gotoBtn.dataset.gotoCompany); });
 }
 function renderViewMaterials(appId){
   const wrap = document.getElementById('view_materials');
@@ -569,6 +629,137 @@ document.getElementById('viewDeleteBtn').addEventListener('click', async ()=>{
   document.getElementById('appViewOverlay').classList.remove('active');
 });
 
+/* ---------------- COMPANIES (shared helpers + feature) ---------------- */
+const CO_COLORS = ['#767A3D','#5E8CA3','#E8AE33','#D6236A','#B23A2E','#423A6B'];
+function companyColor(name){
+  let h = 0; for(const ch of (name||'')) h = (h*31 + ch.charCodeAt(0)) % CO_COLORS.length;
+  return CO_COLORS[h];
+}
+function companyForApp(a){
+  if(a.companyId) return DB.companies.find(c=>c.id===a.companyId);
+  if(a.company) return DB.companies.find(c=>c.name && c.name.toLowerCase()===a.company.toLowerCase());
+  return null;
+}
+function appsForCompany(co){
+  return DB.apps.filter(a=> a.companyId===co.id || (!a.companyId && a.company && a.company.toLowerCase()===co.name.toLowerCase()));
+}
+function contactsForCompany(co){
+  return DB.contacts.filter(c=> c.companyId===co.id || (!c.companyId && c.org && c.org.toLowerCase()===co.name.toLowerCase()));
+}
+function materialsForCompany(co){
+  return DB.materials.filter(m=> m.companyId===co.id || (!m.companyId && m.company && m.company.toLowerCase()===co.name.toLowerCase()));
+}
+function populateCompanySelect(elId, selectedId){
+  const el = document.getElementById(elId);
+  el.innerHTML = '<option value="">— none —</option>' + DB.companies.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');
+  el.value = selectedId||'';
+}
+
+let companiesTab = 'unsorted';
+document.querySelectorAll('.co-tab').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.co-tab').forEach(b=>b.classList.remove('on'));
+    btn.classList.add('on');
+    companiesTab = btn.dataset.tab;
+    renderCompanies();
+  });
+});
+function renderCompanies(){
+  const wrap = document.getElementById('companiesWrap');
+  if(!wrap) return;
+  const items = DB.companies.filter(c=>(c.bank||'unsorted')===companiesTab);
+  if(items.length===0){ wrap.innerHTML = `<div class="empty"><b>Nothing here yet</b>Add a company to start tracking it.</div>`; return; }
+  wrap.innerHTML = items.map(co=>{
+    const apps = appsForCompany(co), contacts = contactsForCompany(co);
+    const initial = (co.name||'?').trim()[0]?.toUpperCase() || '?';
+    return `<div class="item-card" data-id="${co.id}">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span class="co-circle" style="background:${companyColor(co.name)}">${initial}</span>
+        <div><div class="item-title">${esc(co.name)}</div>${co.outreachNote? `<div class="item-sub" style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(co.outreachNote)}</div>`:''}</div>
+      </div>
+      ${(apps.length||contacts.length)? `<div class="link-chip">${apps.length} application(s), ${contacts.length} contact(s) linked</div>`:''}
+    </div>`;
+  }).join('');
+  wrap.querySelectorAll('.item-card').forEach(c=>c.addEventListener('click',()=>openCompanyView(c.dataset.id)));
+}
+
+let currentViewCompanyId = null;
+function openCompanyView(id){
+  const co = DB.companies.find(x=>x.id===id);
+  if(!co) return;
+  currentViewCompanyId = id;
+  const initial = (co.name||'?').trim()[0]?.toUpperCase() || '?';
+  document.getElementById('co_view_badge').innerHTML = `<span class="co-circle" style="background:${companyColor(co.name)}">${initial}</span>`;
+  document.getElementById('co_view_name').textContent = co.name;
+  document.getElementById('co_view_bank').innerHTML = `<span class="tag">${co.bank==='contacted'?'Contacted':'General / Unsorted'}</span>`;
+  document.getElementById('co_view_note').textContent = co.outreachNote || '';
+
+  const apps = appsForCompany(co);
+  document.getElementById('co_view_apps').innerHTML = `<label style="display:block;font-family:'IBM Plex Mono';font-size:10px;letter-spacing:0.5px;text-transform:uppercase;color:var(--ink-dim);margin:16px 0 6px;">Applications</label>` +
+    (apps.length? `<div class="linked-list">${apps.map(a=>`<div class="linked-row" data-goto-app="${a.id}" style="cursor:pointer;"><span>${esc(a.role)}</span><span class="tag">${STAGES[a.stage]}</span></div>`).join('')}</div>` : `<div style="font-size:12px;color:var(--ink-dim);">None linked yet.</div>`) +
+    `<button class="btn small" id="coAddAppBtn" style="margin-top:8px;">+ New application here</button>`;
+
+  const contacts = contactsForCompany(co);
+  document.getElementById('co_view_contacts').innerHTML = `<label style="display:block;font-family:'IBM Plex Mono';font-size:10px;letter-spacing:0.5px;text-transform:uppercase;color:var(--ink-dim);margin:16px 0 6px;">Contacts</label>` +
+    (contacts.length? `<div class="linked-list">${contacts.map(c=>`<div class="linked-row" data-goto-contact="${c.id}" style="cursor:pointer;"><span>${esc(c.name)}</span><span class="tag">${esc(c.role||'')}</span></div>`).join('')}</div>` : `<div style="font-size:12px;color:var(--ink-dim);">None linked yet.</div>`) +
+    `<button class="btn small" id="coAddContactBtn" style="margin-top:8px;">+ New contact here</button>`;
+
+  const mats = materialsForCompany(co);
+  document.getElementById('co_view_materials').innerHTML = `<label style="display:block;font-family:'IBM Plex Mono';font-size:10px;letter-spacing:0.5px;text-transform:uppercase;color:var(--ink-dim);margin:16px 0 6px;">Materials</label>` +
+    (mats.length? `<div class="linked-list">${mats.map(m=>`<div class="linked-row"><span>${esc(m.title||'(untitled)')}</span><span class="tag">${m.type}</span></div>`).join('')}</div>` : `<div style="font-size:12px;color:var(--ink-dim);">None linked yet.</div>`) +
+    `<button class="btn small" id="coAddMaterialBtn" style="margin-top:8px;">+ New material here</button>`;
+
+  document.getElementById('companyViewOverlay').classList.add('active');
+
+  document.querySelectorAll('[data-goto-app]').forEach(el=>el.addEventListener('click', ()=>{ document.getElementById('companyViewOverlay').classList.remove('active'); openAppView(el.dataset.gotoApp); }));
+  document.querySelectorAll('[data-goto-contact]').forEach(el=>el.addEventListener('click', ()=>{ document.getElementById('companyViewOverlay').classList.remove('active'); openContactModal(el.dataset.gotoContact); }));
+  document.getElementById('coAddAppBtn').addEventListener('click', ()=>{ document.getElementById('companyViewOverlay').classList.remove('active'); openAppModal(null, {company: co.name, companyId: co.id}); });
+  document.getElementById('coAddContactBtn').addEventListener('click', ()=>{ document.getElementById('companyViewOverlay').classList.remove('active'); openContactModal(null, co.id); });
+  document.getElementById('coAddMaterialBtn').addEventListener('click', ()=>{ document.getElementById('companyViewOverlay').classList.remove('active'); openMaterialModal(null, null, co.id); });
+}
+document.getElementById('coViewEditBtn').addEventListener('click', ()=>{
+  document.getElementById('companyViewOverlay').classList.remove('active');
+  openCompanyModal(currentViewCompanyId);
+});
+document.getElementById('coViewDeleteBtn').addEventListener('click', async ()=>{
+  if(!confirm('Delete this company? Linked applications, contacts, and materials will stay, just unlinked.')) return;
+  await db.collection('users').doc(uid).collection('companies').doc(currentViewCompanyId).delete();
+  document.getElementById('companyViewOverlay').classList.remove('active');
+});
+
+function openCompanyModal(id, prefillName){
+  const isEdit = !!id;
+  document.getElementById('companyModalTitle').textContent = isEdit? 'Edit company':'New company';
+  document.getElementById('deleteCompanyBtn').style.display = isEdit? 'inline-flex':'none';
+  const co = isEdit? DB.companies.find(x=>x.id===id) : {name: prefillName||''};
+  document.getElementById('co_id').value = id||'';
+  document.getElementById('co_name').value = co.name||'';
+  document.getElementById('co_bank').value = co.bank||'unsorted';
+  document.getElementById('co_outreach').value = co.outreachNote||'';
+  document.getElementById('co_notes').value = co.notes||'';
+  document.getElementById('companyOverlay').classList.add('active');
+}
+document.getElementById('addCompanyBtn').addEventListener('click', ()=>openCompanyModal(null));
+document.getElementById('saveCompanyBtn').addEventListener('click', async ()=>{
+  const id = document.getElementById('co_id').value;
+  const data = {
+    name: document.getElementById('co_name').value.trim(),
+    bank: document.getElementById('co_bank').value,
+    outreachNote: document.getElementById('co_outreach').value.trim(),
+    notes: document.getElementById('co_notes').value.trim(),
+    updatedAt: Date.now()
+  };
+  if(!data.name){ alert('Give the company a name.'); return; }
+  const col = db.collection('users').doc(uid).collection('companies');
+  if(id) await col.doc(id).update(data); else await col.add({...data, createdAt: Date.now()});
+  document.getElementById('companyOverlay').classList.remove('active');
+});
+document.getElementById('deleteCompanyBtn').addEventListener('click', async ()=>{
+  const id = document.getElementById('co_id').value;
+  await db.collection('users').doc(uid).collection('companies').doc(id).delete();
+  document.getElementById('companyOverlay').classList.remove('active');
+});
+
 /* ---------------- LISTING PARSER (shared) ---------------- */
 async function parseListingText(raw){
   if(!settings.apiKey) throw new Error('NO_KEY');
@@ -590,6 +781,7 @@ async function parseListingText(raw){
 /* ---------------- APPLICATION MODAL ---------------- */
 function populateSelects(){
   document.getElementById('f_contact').innerHTML = '<option value="">— none —</option>' + DB.contacts.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');
+  populateCompanySelect('f_companyId');
 }
 function openAppModal(id, prefill){
   populateSelects();
@@ -605,6 +797,7 @@ function openAppModal(id, prefill){
   document.getElementById('f_stage').value = a.stage!==undefined? a.stage:0;
   document.getElementById('f_deadline').value = a.deadline||'';
   document.getElementById('f_link').value = a.link||'';
+  document.getElementById('f_companyId').value = a.companyId||'';
   document.getElementById('f_contact').value = a.contactId||'';
   document.getElementById('f_next').value = a.nextAction||'';
   document.getElementById('f_notes').value = a.notes||'';
@@ -626,7 +819,8 @@ document.getElementById('saveAppBtn').addEventListener('click', async ()=>{
     role: document.getElementById('f_role').value.trim(), company: document.getElementById('f_company').value.trim(),
     location: document.getElementById('f_location').value.trim(), salary: document.getElementById('f_salary').value.trim(),
     stage: parseInt(document.getElementById('f_stage').value), deadline: document.getElementById('f_deadline').value,
-    link: document.getElementById('f_link').value.trim(), contactId: document.getElementById('f_contact').value,
+    link: document.getElementById('f_link').value.trim(), companyId: document.getElementById('f_companyId').value,
+    contactId: document.getElementById('f_contact').value,
     nextAction: document.getElementById('f_next').value.trim(),
     notes: document.getElementById('f_notes').value.trim(), updatedAt: Date.now()
   };
@@ -674,19 +868,22 @@ function renderMaterials(){
 }
 function populateMaterialSelects(){
   document.getElementById('m_app').innerHTML = '<option value="">— none —</option>' + DB.apps.map(a=>`<option value="${a.id}">${esc(a.role)} @ ${esc(a.company)}</option>`).join('');
+  populateCompanySelect('m_companyId');
 }
-function openMaterialModal(id, prefillAppId){
+function openMaterialModal(id, prefillAppId, prefillCompanyId){
   populateMaterialSelects();
   const isEdit = !!id;
   document.getElementById('materialModalTitle').textContent = isEdit?'Edit material':'New material';
   document.getElementById('deleteMaterialBtn').style.display = isEdit?'inline-flex':'none';
-  const m = isEdit? DB.materials.find(x=>x.id===id) : {type: materialsTab, linkedAppId: prefillAppId||''};
+  const m = isEdit? DB.materials.find(x=>x.id===id) : {type: materialsTab, linkedAppId: prefillAppId||'', companyId: prefillCompanyId||''};
   document.getElementById('m_id').value = id||'';
   document.getElementById('m_type').value = m.type||materialsTab;
   document.getElementById('m_title').value = m.title||'';
   document.getElementById('m_app').value = m.linkedAppId||'';
+  document.getElementById('m_companyId').value = m.companyId||'';
   const linkedApp = DB.apps.find(a=>a.id===m.linkedAppId);
-  document.getElementById('m_company').value = m.company || (linkedApp? linkedApp.company : '');
+  const linkedCo = DB.companies.find(c=>c.id===m.companyId);
+  document.getElementById('m_company').value = m.company || (linkedApp? linkedApp.company : (linkedCo? linkedCo.name : ''));
   document.getElementById('m_link').value = m.link||'';
   document.getElementById('m_content').value = m.content||'';
   document.getElementById('materialOverlay').classList.add('active');
@@ -702,6 +899,7 @@ document.getElementById('saveMaterialBtn').addEventListener('click', async ()=>{
   const data = {
     type: document.getElementById('m_type').value, title: document.getElementById('m_title').value.trim(),
     linkedAppId: document.getElementById('m_app').value, company: document.getElementById('m_company').value.trim(),
+    companyId: document.getElementById('m_companyId').value,
     link: document.getElementById('m_link').value.trim(), content: document.getElementById('m_content').value.trim(), updatedAt: Date.now()
   };
   if(!data.title){ alert('Give it a title.'); return; }
@@ -728,16 +926,17 @@ function renderContacts(){
   }).join('');
   wrap.querySelectorAll('.item-card').forEach(c=>c.addEventListener('click',()=>openContactModal(c.dataset.id)));
 }
-function openContactModal(id){
+function openContactModal(id, prefillCompanyId){
   const isEdit = !!id;
   document.getElementById('contactModalTitle').textContent = isEdit?'Edit source':'New source';
   document.getElementById('deleteContactBtn').style.display = isEdit?'inline-flex':'none';
-  const c = isEdit? DB.contacts.find(x=>x.id===id) : {};
+  const c = isEdit? DB.contacts.find(x=>x.id===id) : {companyId: prefillCompanyId||''};
   document.getElementById('c_id').value = id||'';
   document.getElementById('c_name').value = c.name||'';
   document.getElementById('c_role').value = c.role||'';
   document.getElementById('c_org').value = c.org||'';
   document.getElementById('c_email').value = c.email||'';
+  populateCompanySelect('c_companyId', c.companyId);
   document.getElementById('c_how').value = c.how||'';
   document.getElementById('c_notes').value = c.notes||'';
   const linkedWrap = document.getElementById('c_linked');
@@ -755,6 +954,7 @@ document.getElementById('saveContactBtn').addEventListener('click', async ()=>{
   const data = {
     name: document.getElementById('c_name').value.trim(), role: document.getElementById('c_role').value.trim(),
     org: document.getElementById('c_org').value.trim(), email: document.getElementById('c_email').value.trim(),
+    companyId: document.getElementById('c_companyId').value,
     how: document.getElementById('c_how').value.trim(), notes: document.getElementById('c_notes').value.trim(), updatedAt: Date.now()
   };
   if(!data.name){ alert('Add a name.'); return; }
