@@ -86,19 +86,16 @@ button{font-family:inherit;cursor:pointer;}
 .view{display:none;}
 .view.active{display:block;}
 
-.page-head{border-radius:var(--radius);padding:20px 24px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:flex-end;background:var(--blue-desk);position:relative;overflow:hidden;}
-.cute-sparkle{position:absolute;top:14px;right:18px;color:rgba(255,255,255,0.55);}
-#view-companies .cute-sparkle, #view-notebook .cute-sparkle{color:rgba(25,21,16,0.35);}
-.page-title{font-family:'Anton',sans-serif;font-size:40px;letter-spacing:-0.4px;line-height:0.95;color:#fff;}
-.page-tag{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:rgba(255,255,255,0.75);margin-top:4px;text-transform:uppercase;}
-#view-companies .page-head{background:var(--blue-companies);}
-#view-companies .page-title, #view-companies .page-tag{color:var(--ink);}
-#view-companies .page-tag{color:rgba(25,21,16,0.6);}
-#view-materials .page-head{background:var(--blue-materials);}
-#view-sources .page-head{background:var(--blue-sources);}
-#view-notebook .page-head{background:var(--blue-notebook);}
-#view-notebook .page-title, #view-notebook .page-tag{color:var(--ink);}
-#view-notebook .page-tag{color:rgba(25,21,16,0.6);}
+.page-head{border-radius:var(--radius);padding:20px 24px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:flex-end;background-color:var(--blue-desk);background-size:cover;background-position:center;position:relative;overflow:hidden;}
+.cute-sparkle{position:absolute;top:14px;right:18px;color:var(--ink);opacity:0.35;}
+.page-title-box{display:inline-block;background:var(--paper-raised);padding:10px 18px;border-radius:8px;box-shadow:2px 2px 0 rgba(25,21,16,0.15);}
+.page-title{font-family:'Anton',sans-serif;font-size:40px;letter-spacing:-0.4px;line-height:0.95;color:var(--ink);}
+.page-tag{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--ink-dim);margin-top:4px;text-transform:uppercase;}
+.page-bg-btn{position:absolute;top:14px;right:52px;background:rgba(255,255,255,0.9);border:1px solid var(--ink);border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;color:var(--ink);cursor:pointer;padding:0;}
+#view-companies .page-head{background-color:var(--blue-companies);}
+#view-materials .page-head{background-color:var(--blue-materials);}
+#view-sources .page-head{background-color:var(--blue-sources);}
+#view-notebook .page-head{background-color:var(--blue-notebook);}
 
 .toolbar{display:flex;justify-content:space-between;align-items:center;margin:18px 0;gap:10px;flex-wrap:wrap;}
 .toggle-group{display:flex;border:2px solid var(--ink);border-radius:var(--radius);overflow:hidden;}
@@ -197,8 +194,9 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
 .badge{display:inline-flex;flex-shrink:0;}
 
 /* ---------- DOJO (home) ---------- */
-.dojo-head{border:2px solid var(--ink);border-radius:var(--radius);padding:28px 26px;margin-bottom:22px;background-color:var(--paper-raised);}
-.dojo-greeting{font-family:'Anton',sans-serif;font-size:36px;letter-spacing:-0.4px;line-height:1;}
+.dojo-head{border:2px solid var(--ink);border-radius:var(--radius);padding:28px 26px;margin-bottom:22px;background-color:var(--paper-raised);background-size:cover;background-position:center;position:relative;overflow:hidden;}
+.dojo-title-box{display:inline-block;background:var(--paper-raised);padding:14px 20px;border-radius:8px;box-shadow:2px 2px 0 rgba(25,21,16,0.15);}
+.dojo-greeting{font-family:'Anton',sans-serif;font-size:36px;letter-spacing:-0.4px;line-height:1;color:var(--ink);}
 .dojo-date{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-dim);text-transform:uppercase;letter-spacing:1px;margin-top:6px;}
 .dojo-grid{display:grid;grid-template-columns:1.1fr 0.9fr;gap:18px;align-items:start;}
 @media (max-width: 900px){.dojo-grid{grid-template-columns:1fr;}}
@@ -206,14 +204,28 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
 .dojo-card{background:var(--paper-raised);border:2px solid var(--ink);border-radius:var(--radius);padding:16px 18px;}
 .dojo-card-label{display:block;font-family:'IBM Plex Mono';font-size:10px;letter-spacing:0.5px;text-transform:uppercase;color:var(--ink-dim);margin-bottom:8px;}
 .dojo-quote-card{background:#F1E9F6;border:2px solid var(--ink);border-radius:var(--radius);padding:26px 24px;position:relative;overflow:hidden;}
-.dojo-moon{position:absolute;top:16px;right:18px;}
 .dojo-quote-mark{font-family:'Anton',sans-serif;font-size:52px;color:#B8A6D9;line-height:0.5;margin-bottom:4px;}
 .dojo-quote-text{font-family:'Space Grotesk',sans-serif;font-style:italic;font-size:16px;line-height:1.5;color:var(--ink);}
 .dojo-quote-author{font-family:'IBM Plex Mono';font-size:10.5px;color:var(--ink-dim);margin-top:10px;text-transform:uppercase;letter-spacing:0.5px;}
+.eight-ball{cursor:pointer;}
+.eight-ball.shaking{animation:eightBallShake 0.6s ease-in-out;}
+@keyframes eightBallShake{
+  0%,100%{transform:translate(0,0) rotate(0deg);}
+  15%{transform:translate(-4px,-2px) rotate(-8deg);}
+  30%{transform:translate(4px,2px) rotate(8deg);}
+  45%{transform:translate(-4px,2px) rotate(-6deg);}
+  60%{transform:translate(4px,-2px) rotate(6deg);}
+  75%{transform:translate(-2px,1px) rotate(-3deg);}
+}
 
 /* ---------- OASIS ---------- */
-.oasis-pic{width:100%;height:150px;object-fit:cover;border-radius:8px;margin-bottom:10px;display:block;background:var(--paper);}
-.oasis-icon-block{width:100%;height:80px;border-radius:8px;margin-bottom:10px;display:flex;align-items:center;justify-content:center;font-size:28px;}
+.oasis-masonry{column-count:4;column-gap:12px;}
+@media (max-width: 1100px){.oasis-masonry{column-count:3;}}
+@media (max-width: 750px){.oasis-masonry{column-count:2;}}
+@media (max-width: 480px){.oasis-masonry{column-count:1;}}
+.oasis-item{display:inline-block;width:100%;margin:0 0 12px;break-inside:avoid;}
+.oasis-pic{width:100%;height:auto;display:block;border-radius:8px 8px 0 0;background:var(--paper);}
+.oasis-icon-block{width:100%;height:80px;border-radius:8px 8px 0 0;display:flex;align-items:center;justify-content:center;font-size:28px;}
 </style>
 </head>
 <body>
@@ -259,9 +271,12 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
     <!-- DESK -->
     <!-- DOJO (home) -->
     <div class="view active" id="view-dojo">
-      <div class="dojo-head dots">
-        <div class="dojo-greeting" id="dojoGreeting"></div>
-        <div class="dojo-date" id="dojoDate"></div>
+      <div class="dojo-head dots" id="dojoHeadBg">
+        <button class="page-bg-btn" data-pagekey="dojo" title="Customize background"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 3C7 3 3 7 3 12c0 4.5 3.5 8 8 9 .5.1 1-.3 1-.9 0-.3-.1-.5-.3-.7-.4-.4-.6-.9-.5-1.4.2-.7.9-1 1.6-1H14c3.9 0 7-3.1 7-7 0-4.4-4-7-9-7Z" stroke="currentColor" stroke-width="1.4"/><circle cx="7.5" cy="11" r="1.1" fill="currentColor"/><circle cx="10.5" cy="7.5" r="1.1" fill="currentColor"/><circle cx="15" cy="7.5" r="1.1" fill="currentColor"/><circle cx="17.5" cy="11" r="1.1" fill="currentColor"/></svg></button>
+        <div class="dojo-title-box">
+          <div class="dojo-greeting" id="dojoGreeting"></div>
+          <div class="dojo-date" id="dojoDate"></div>
+        </div>
       </div>
       <div class="dojo-grid">
         <div class="dojo-col">
@@ -276,11 +291,6 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
         </div>
         <div class="dojo-col">
           <div class="dojo-quote-card">
-            <svg class="dojo-moon" width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M20 4 C12 4, 6 10, 6 18 C6 26, 12 30, 18 29 C11 26, 8 20, 11 13 C13 8, 17 5, 20 4 Z" fill="#B8A6D9"/>
-              <circle cx="24" cy="8" r="1.4" fill="#D9C9EE"/>
-              <circle cx="26" cy="14" r="0.9" fill="#D9C9EE"/>
-            </svg>
             <div class="dojo-quote-mark">"</div>
             <div class="dojo-quote-text" id="dojoQuoteText">Add your first quote to see it here.</div>
             <div class="dojo-quote-author" id="dojoQuoteAuthor"></div>
@@ -289,12 +299,22 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
               <button class="btn ghost small" id="dojoManageQuotesBtn">Manage quotes</button>
             </div>
           </div>
+          <div class="dojo-card" style="text-align:center;">
+            <label class="dojo-card-label">Ask the magic 8-ball</label>
+            <svg id="eightBall" class="eight-ball" width="86" height="86" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="50" cy="50" r="46" fill="#161616"/>
+              <ellipse cx="34" cy="28" rx="13" ry="7" fill="rgba(255,255,255,0.14)"/>
+              <circle cx="50" cy="55" r="19" fill="#F6F1E6"/>
+              <text x="50" y="61" text-anchor="middle" font-family="Space Grotesk, sans-serif" font-size="16" font-weight="700" fill="#161616">8</text>
+            </svg>
+            <div id="eightBallAnswer" style="margin-top:10px;font-family:'Space Grotesk';font-style:italic;font-size:13px;color:var(--ink-dim);min-height:18px;">Click the ball for an answer.</div>
+          </div>
         </div>
       </div>
     </div>
 
     <div class="view" id="view-desk">
-      <div class="page-head"><svg class="cute-sparkle" width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2 L14.2 9.8 L22 12 L14.2 14.2 L12 22 L9.8 14.2 L2 12 L9.8 9.8 Z" fill="currentColor"/></svg><div><div class="page-title">The Desk</div></div>
+      <div class="page-head"><svg class="cute-sparkle" width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2 L14.2 9.8 L22 12 L14.2 14.2 L12 22 L9.8 14.2 L2 12 L9.8 9.8 Z" fill="currentColor"/></svg><button class="page-bg-btn" data-pagekey="desk" title="Customize background"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 3C7 3 3 7 3 12c0 4.5 3.5 8 8 9 .5.1 1-.3 1-.9 0-.3-.1-.5-.3-.7-.4-.4-.6-.9-.5-1.4.2-.7.9-1 1.6-1H14c3.9 0 7-3.1 7-7 0-4.4-4-7-9-7Z" stroke="currentColor" stroke-width="1.4"/><circle cx="7.5" cy="11" r="1.1" fill="currentColor"/><circle cx="10.5" cy="7.5" r="1.1" fill="currentColor"/><circle cx="15" cy="7.5" r="1.1" fill="currentColor"/><circle cx="17.5" cy="11" r="1.1" fill="currentColor"/></svg></button><div class="page-title-box"><div class="page-title">The Desk</div></div>
         <svg width="52" height="60" viewBox="0 0 52 60" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;">
           <path d="M40 46 C 50 44, 50 30, 40 26" fill="none" stroke="#4A3B2E" stroke-width="5" stroke-linecap="round"/>
           <path d="M10 58 C 6 40, 10 24, 24 22 C 38 24, 40 40, 38 58 Z" fill="#EDE0C0"/>
@@ -348,7 +368,7 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
 
     <!-- RADAR -->
     <div class="view" id="view-radar">
-      <div class="page-head"><svg class="cute-sparkle" width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2 L14.2 9.8 L22 12 L14.2 14.2 L12 22 L9.8 14.2 L2 12 L9.8 9.8 Z" fill="currentColor"/></svg><div><div class="page-title">Radar</div><div class="page-tag">not open yet, but worth watching</div></div></div>
+      <div class="page-head"><svg class="cute-sparkle" width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2 L14.2 9.8 L22 12 L14.2 14.2 L12 22 L9.8 14.2 L2 12 L9.8 9.8 Z" fill="currentColor"/></svg><button class="page-bg-btn" data-pagekey="radar" title="Customize background"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 3C7 3 3 7 3 12c0 4.5 3.5 8 8 9 .5.1 1-.3 1-.9 0-.3-.1-.5-.3-.7-.4-.4-.6-.9-.5-1.4.2-.7.9-1 1.6-1H14c3.9 0 7-3.1 7-7 0-4.4-4-7-9-7Z" stroke="currentColor" stroke-width="1.4"/><circle cx="7.5" cy="11" r="1.1" fill="currentColor"/><circle cx="10.5" cy="7.5" r="1.1" fill="currentColor"/><circle cx="15" cy="7.5" r="1.1" fill="currentColor"/><circle cx="17.5" cy="11" r="1.1" fill="currentColor"/></svg></button><div class="page-title-box"><div class="page-title">Radar</div><div class="page-tag">not open yet, but worth watching</div></div></div>
 
       <div class="capture">
         <div class="capture-label">Quick capture</div>
@@ -379,7 +399,7 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
 
     <!-- COMPANIES -->
     <div class="view" id="view-companies">
-      <div class="page-head"><svg class="cute-sparkle" width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2 L14.2 9.8 L22 12 L14.2 14.2 L12 22 L9.8 14.2 L2 12 L9.8 9.8 Z" fill="currentColor"/></svg><div><div class="page-title">Companies</div><div class="page-tag">every org that touches a job, a pitch, or a person</div></div><button class="btn" id="addCompanyBtn">+ New company</button></div>
+      <div class="page-head"><svg class="cute-sparkle" width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2 L14.2 9.8 L22 12 L14.2 14.2 L12 22 L9.8 14.2 L2 12 L9.8 9.8 Z" fill="currentColor"/></svg><button class="page-bg-btn" data-pagekey="companies" title="Customize background"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 3C7 3 3 7 3 12c0 4.5 3.5 8 8 9 .5.1 1-.3 1-.9 0-.3-.1-.5-.3-.7-.4-.4-.6-.9-.5-1.4.2-.7.9-1 1.6-1H14c3.9 0 7-3.1 7-7 0-4.4-4-7-9-7Z" stroke="currentColor" stroke-width="1.4"/><circle cx="7.5" cy="11" r="1.1" fill="currentColor"/><circle cx="10.5" cy="7.5" r="1.1" fill="currentColor"/><circle cx="15" cy="7.5" r="1.1" fill="currentColor"/><circle cx="17.5" cy="11" r="1.1" fill="currentColor"/></svg></button><div class="page-title-box"><div class="page-title">Companies</div><div class="page-tag">every org that touches a job, a pitch, or a person</div></div><button class="btn" id="addCompanyBtn">+ New company</button></div>
       <div class="toolbar" style="margin-top:0;">
         <div class="toggle-group">
           <button class="co-tab on" data-tab="unsorted">General / Unsorted</button>
@@ -393,7 +413,7 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
 
     <!-- MATERIALS -->
     <div class="view" id="view-materials">
-      <div class="page-head"><svg class="cute-sparkle" width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2 L14.2 9.8 L22 12 L14.2 14.2 L12 22 L9.8 14.2 L2 12 L9.8 9.8 Z" fill="currentColor"/></svg><div><div class="page-title">Application Materials</div><div class="page-tag">resumes, cover letters, and everything you send</div></div><button class="btn" id="addMaterialBtn">+ New material</button></div>
+      <div class="page-head"><svg class="cute-sparkle" width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2 L14.2 9.8 L22 12 L14.2 14.2 L12 22 L9.8 14.2 L2 12 L9.8 9.8 Z" fill="currentColor"/></svg><button class="page-bg-btn" data-pagekey="materials" title="Customize background"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 3C7 3 3 7 3 12c0 4.5 3.5 8 8 9 .5.1 1-.3 1-.9 0-.3-.1-.5-.3-.7-.4-.4-.6-.9-.5-1.4.2-.7.9-1 1.6-1H14c3.9 0 7-3.1 7-7 0-4.4-4-7-9-7Z" stroke="currentColor" stroke-width="1.4"/><circle cx="7.5" cy="11" r="1.1" fill="currentColor"/><circle cx="10.5" cy="7.5" r="1.1" fill="currentColor"/><circle cx="15" cy="7.5" r="1.1" fill="currentColor"/><circle cx="17.5" cy="11" r="1.1" fill="currentColor"/></svg></button><div class="page-title-box"><div class="page-title">Application Materials</div><div class="page-tag">resumes, cover letters, and everything you send</div></div><button class="btn" id="addMaterialBtn">+ New material</button></div>
       <div class="toolbar" style="margin-top:0;">
         <div class="toggle-group">
           <button class="mat-tab on" data-tab="resume">Resume</button>
@@ -406,7 +426,7 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
 
     <!-- SOURCES -->
     <div class="view" id="view-sources">
-      <div class="page-head"><svg class="cute-sparkle" width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2 L14.2 9.8 L22 12 L14.2 14.2 L12 22 L9.8 14.2 L2 12 L9.8 9.8 Z" fill="currentColor"/></svg><div><div class="page-title">Contacts</div><div class="page-tag">editors, referrals, and settings</div></div><div style="display:flex;gap:8px;"><button class="btn ghost" id="settingsBtn">Settings</button><button class="btn" id="addContactBtn">+ New contact</button></div></div>
+      <div class="page-head"><svg class="cute-sparkle" width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2 L14.2 9.8 L22 12 L14.2 14.2 L12 22 L9.8 14.2 L2 12 L9.8 9.8 Z" fill="currentColor"/></svg><button class="page-bg-btn" data-pagekey="sources" title="Customize background"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 3C7 3 3 7 3 12c0 4.5 3.5 8 8 9 .5.1 1-.3 1-.9 0-.3-.1-.5-.3-.7-.4-.4-.6-.9-.5-1.4.2-.7.9-1 1.6-1H14c3.9 0 7-3.1 7-7 0-4.4-4-7-9-7Z" stroke="currentColor" stroke-width="1.4"/><circle cx="7.5" cy="11" r="1.1" fill="currentColor"/><circle cx="10.5" cy="7.5" r="1.1" fill="currentColor"/><circle cx="15" cy="7.5" r="1.1" fill="currentColor"/><circle cx="17.5" cy="11" r="1.1" fill="currentColor"/></svg></button><div class="page-title-box"><div class="page-title">Contacts</div><div class="page-tag">editors, referrals, and settings</div></div><div style="display:flex;gap:8px;"><button class="btn ghost" id="settingsBtn">Settings</button><button class="btn" id="addContactBtn">+ New contact</button></div></div>
       <div class="toolbar" style="margin-top:0;">
         <select id="contactsSortSelect" class="sort-select"><option value="alpha">Sort: A–Z</option><option value="created">Sort: Date added</option><option value="updated">Sort: Last edited</option></select>
         <label class="archive-toggle"><input type="checkbox" id="contactsArchiveToggle"> Show archived</label>
@@ -416,7 +436,7 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
 
     <!-- TO-DO -->
     <div class="view" id="view-todo">
-      <div class="page-head"><svg class="cute-sparkle" width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2 L14.2 9.8 L22 12 L14.2 14.2 L12 22 L9.8 14.2 L2 12 L9.8 9.8 Z" fill="currentColor"/></svg><div><div class="page-title">To-Do</div><div class="page-tag">work, personal, other</div></div><button class="btn" id="addTaskBtn">+ New task</button></div>
+      <div class="page-head"><svg class="cute-sparkle" width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2 L14.2 9.8 L22 12 L14.2 14.2 L12 22 L9.8 14.2 L2 12 L9.8 9.8 Z" fill="currentColor"/></svg><button class="page-bg-btn" data-pagekey="todo" title="Customize background"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 3C7 3 3 7 3 12c0 4.5 3.5 8 8 9 .5.1 1-.3 1-.9 0-.3-.1-.5-.3-.7-.4-.4-.6-.9-.5-1.4.2-.7.9-1 1.6-1H14c3.9 0 7-3.1 7-7 0-4.4-4-7-9-7Z" stroke="currentColor" stroke-width="1.4"/><circle cx="7.5" cy="11" r="1.1" fill="currentColor"/><circle cx="10.5" cy="7.5" r="1.1" fill="currentColor"/><circle cx="15" cy="7.5" r="1.1" fill="currentColor"/><circle cx="17.5" cy="11" r="1.1" fill="currentColor"/></svg></button><div class="page-title-box"><div class="page-title">To-Do</div><div class="page-tag">work, personal, other</div></div><button class="btn" id="addTaskBtn">+ New task</button></div>
 
       <div class="toolbar">
         <div style="display:flex;align-items:center;gap:12px;">
@@ -449,13 +469,13 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
 
     <!-- NOTEBOOK -->
     <div class="view" id="view-notebook">
-      <div class="page-head"><svg class="cute-sparkle" width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2 L14.2 9.8 L22 12 L14.2 14.2 L12 22 L9.8 14.2 L2 12 L9.8 9.8 Z" fill="currentColor"/></svg><div><div class="page-title">Notebook</div><div class="page-tag">loose ideas before they're anything else</div></div><button class="btn" id="addNoteBtn">+ New entry</button></div>
+      <div class="page-head"><svg class="cute-sparkle" width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2 L14.2 9.8 L22 12 L14.2 14.2 L12 22 L9.8 14.2 L2 12 L9.8 9.8 Z" fill="currentColor"/></svg><button class="page-bg-btn" data-pagekey="notebook" title="Customize background"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 3C7 3 3 7 3 12c0 4.5 3.5 8 8 9 .5.1 1-.3 1-.9 0-.3-.1-.5-.3-.7-.4-.4-.6-.9-.5-1.4.2-.7.9-1 1.6-1H14c3.9 0 7-3.1 7-7 0-4.4-4-7-9-7Z" stroke="currentColor" stroke-width="1.4"/><circle cx="7.5" cy="11" r="1.1" fill="currentColor"/><circle cx="10.5" cy="7.5" r="1.1" fill="currentColor"/><circle cx="15" cy="7.5" r="1.1" fill="currentColor"/><circle cx="17.5" cy="11" r="1.1" fill="currentColor"/></svg></button><div class="page-title-box"><div class="page-title">Notebook</div><div class="page-tag">loose ideas before they're anything else</div></div><button class="btn" id="addNoteBtn">+ New entry</button></div>
       <div id="notebookWrap" class="grid"></div>
     </div>
 
     <!-- CALENDAR -->
     <div class="view" id="view-calendar">
-      <div class="page-head"><svg class="cute-sparkle" width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2 L14.2 9.8 L22 12 L14.2 14.2 L12 22 L9.8 14.2 L2 12 L9.8 9.8 Z" fill="currentColor"/></svg><div><div class="page-title">Calendar</div><div class="page-tag">everything with a date attached</div></div><button class="btn" id="addEventBtn">+ New event</button></div>
+      <div class="page-head"><svg class="cute-sparkle" width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2 L14.2 9.8 L22 12 L14.2 14.2 L12 22 L9.8 14.2 L2 12 L9.8 9.8 Z" fill="currentColor"/></svg><button class="page-bg-btn" data-pagekey="calendar" title="Customize background"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 3C7 3 3 7 3 12c0 4.5 3.5 8 8 9 .5.1 1-.3 1-.9 0-.3-.1-.5-.3-.7-.4-.4-.6-.9-.5-1.4.2-.7.9-1 1.6-1H14c3.9 0 7-3.1 7-7 0-4.4-4-7-9-7Z" stroke="currentColor" stroke-width="1.4"/><circle cx="7.5" cy="11" r="1.1" fill="currentColor"/><circle cx="10.5" cy="7.5" r="1.1" fill="currentColor"/><circle cx="15" cy="7.5" r="1.1" fill="currentColor"/><circle cx="17.5" cy="11" r="1.1" fill="currentColor"/></svg></button><div class="page-title-box"><div class="page-title">Calendar</div><div class="page-tag">everything with a date attached</div></div><button class="btn" id="addEventBtn">+ New event</button></div>
 
       <div class="toolbar">
         <div style="display:flex;align-items:center;gap:12px;">
@@ -488,7 +508,7 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
 
     <!-- OASIS -->
     <div class="view" id="view-oasis">
-      <div class="page-head"><svg class="cute-sparkle" width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2 L14.2 9.8 L22 12 L14.2 14.2 L12 22 L9.8 14.2 L2 12 L9.8 9.8 Z" fill="currentColor"/></svg><div><div class="page-title">Oasis</div><div class="page-tag">pictures, sites, songs — whatever's a nice place to land</div></div><button class="btn" id="addOasisBtn">+ New item</button></div>
+      <div class="page-head"><svg class="cute-sparkle" width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2 L14.2 9.8 L22 12 L14.2 14.2 L12 22 L9.8 14.2 L2 12 L9.8 9.8 Z" fill="currentColor"/></svg><button class="page-bg-btn" data-pagekey="oasis" title="Customize background"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 3C7 3 3 7 3 12c0 4.5 3.5 8 8 9 .5.1 1-.3 1-.9 0-.3-.1-.5-.3-.7-.4-.4-.6-.9-.5-1.4.2-.7.9-1 1.6-1H14c3.9 0 7-3.1 7-7 0-4.4-4-7-9-7Z" stroke="currentColor" stroke-width="1.4"/><circle cx="7.5" cy="11" r="1.1" fill="currentColor"/><circle cx="10.5" cy="7.5" r="1.1" fill="currentColor"/><circle cx="15" cy="7.5" r="1.1" fill="currentColor"/><circle cx="17.5" cy="11" r="1.1" fill="currentColor"/></svg></button><div class="page-title-box"><div class="page-title">Oasis</div><div class="page-tag">pictures, sites, songs — whatever's a nice place to land</div></div><button class="btn" id="addOasisBtn">+ New item</button></div>
       <div class="toolbar" style="margin-top:0;">
         <div class="toggle-group">
           <button class="oasis-tab on" data-tab="all">All</button>
@@ -497,7 +517,7 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
           <button class="oasis-tab" data-tab="song">Songs</button>
         </div>
       </div>
-      <div id="oasisWrap" class="grid"></div>
+      <div id="oasisWrap" class="oasis-masonry"></div>
     </div>
 
   </div>
@@ -851,6 +871,17 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
   </div>
 </div>
 
+<!-- PAGE BACKGROUND MODAL -->
+<div class="overlay" id="pageBgOverlay">
+  <div class="modal">
+    <button class="close" data-close="pageBgOverlay">&times;</button>
+    <h2>Customize background</h2>
+    <div class="field"><label>Background color</label><input type="color" id="bg_color" style="height:42px;padding:4px;cursor:pointer;"></div>
+    <div class="field"><label>Background image URL <span style="text-transform:none;color:var(--ink-dim);">(overrides color if set)</span></label><input id="bg_imageUrl" placeholder="https://"></div>
+    <div class="modal-actions"><button class="btn ghost" id="resetBgBtn">Reset to default</button><button class="btn" id="saveBgBtn">Save</button></div>
+  </div>
+</div>
+
 <!-- SETTINGS MODAL -->
 <div class="overlay" id="settingsOverlay">
   <div class="modal">
@@ -952,6 +983,7 @@ function attachListeners(){
   unsubs.push(col('oasis').onSnapshot(snap=>{ DB.oasis = snap.docs.map(d=>({id:d.id, ...d.data()})); renderOasis(); }));
   unsubs.push(db.collection('users').doc(uid).collection('settings').doc('main').onSnapshot(doc=>{
     settings = doc.exists ? doc.data() : {apiKey:''};
+    applyAllPageBackgrounds();
   }));
   unsubs.push(db.collection('inbox').onSnapshot(snap=>{
     inboxItems = snap.docs.map(d=>({id:d.id, ...d.data()}));
@@ -2258,8 +2290,61 @@ document.getElementById('settingsBtn').addEventListener('click', ()=>{
 });
 document.getElementById('saveSettingsBtn').addEventListener('click', async ()=>{
   const apiKey = document.getElementById('s_apikey').value.trim();
-  await db.collection('users').doc(uid).collection('settings').doc('main').set({apiKey});
+  await db.collection('users').doc(uid).collection('settings').doc('main').set({apiKey}, {merge:true});
   document.getElementById('settingsOverlay').classList.remove('active');
+});
+
+/* ---------------- PAGE BACKGROUNDS ---------------- */
+let currentBgPageKey = null;
+function applyBg(pagekey, bg){
+  const btn = document.querySelector(`.page-bg-btn[data-pagekey="${pagekey}"]`);
+  if(!btn) return;
+  const head = btn.closest('.page-head') || btn.closest('.dojo-head');
+  if(!head) return;
+  if(bg && bg.imageUrl){
+    head.style.backgroundImage = `url("${bg.imageUrl}")`;
+    head.style.backgroundColor = '';
+  } else if(bg && bg.color){
+    head.style.backgroundImage = 'none';
+    head.style.backgroundColor = bg.color;
+  } else {
+    head.style.backgroundImage = '';
+    head.style.backgroundColor = '';
+  }
+}
+function applyAllPageBackgrounds(){
+  const bgs = settings.pageBackgrounds || {};
+  document.querySelectorAll('.page-bg-btn').forEach(btn=>{
+    applyBg(btn.dataset.pagekey, bgs[btn.dataset.pagekey]);
+  });
+}
+document.querySelectorAll('.page-bg-btn').forEach(btn=>{
+  btn.addEventListener('click', (e)=>{
+    e.stopPropagation();
+    currentBgPageKey = btn.dataset.pagekey;
+    const bg = (settings.pageBackgrounds||{})[currentBgPageKey] || {};
+    document.getElementById('bg_color').value = bg.color || '#7c6fcb';
+    document.getElementById('bg_imageUrl').value = bg.imageUrl || '';
+    document.getElementById('pageBgOverlay').classList.add('active');
+  });
+});
+document.getElementById('saveBgBtn').addEventListener('click', async ()=>{
+  const color = document.getElementById('bg_color').value;
+  const imageUrl = document.getElementById('bg_imageUrl').value.trim();
+  const ref = db.collection('users').doc(uid).collection('settings').doc('main');
+  try{
+    await ref.update({[`pageBackgrounds.${currentBgPageKey}`]: {color, imageUrl}});
+  }catch(e){
+    await ref.set({pageBackgrounds:{[currentBgPageKey]:{color,imageUrl}}}, {merge:true});
+  }
+  document.getElementById('pageBgOverlay').classList.remove('active');
+});
+document.getElementById('resetBgBtn').addEventListener('click', async ()=>{
+  const ref = db.collection('users').doc(uid).collection('settings').doc('main');
+  try{
+    await ref.update({[`pageBackgrounds.${currentBgPageKey}`]: firebase.firestore.FieldValue.delete()});
+  }catch(e){ console.error(e); }
+  document.getElementById('pageBgOverlay').classList.remove('active');
 });
 
 /* ---------------- INBOX (from Zapier/newsletter automation) ---------------- */
@@ -2354,6 +2439,27 @@ document.getElementById('dojoManageQuotesBtn').addEventListener('click', ()=>{
   document.getElementById('q_author').value='';
   document.getElementById('quoteOverlay').classList.add('active');
 });
+
+const EIGHT_BALL_ANSWERS = [
+  "It is certain.","It is decidedly so.","Without a doubt.","Yes, definitely.","You may rely on it.",
+  "As I see it, yes.","Most likely.","Outlook good.","Yes.","Signs point to yes.",
+  "Reply hazy, try again.","Ask again later.","Better not tell you now.","Cannot predict now.","Concentrate and ask again.",
+  "Don't count on it.","My reply is no.","My sources say no.","Outlook not so good.","Very doubtful."
+];
+let eightBallShaking = false;
+document.getElementById('eightBall').addEventListener('click', ()=>{
+  if(eightBallShaking) return;
+  eightBallShaking = true;
+  const ball = document.getElementById('eightBall');
+  const answerEl = document.getElementById('eightBallAnswer');
+  answerEl.textContent = '';
+  ball.classList.add('shaking');
+  setTimeout(()=>{
+    ball.classList.remove('shaking');
+    answerEl.textContent = EIGHT_BALL_ANSWERS[Math.floor(Math.random()*EIGHT_BALL_ANSWERS.length)];
+    eightBallShaking = false;
+  }, 600);
+});
 function renderQuoteManager(){
   const wrap = document.getElementById('quoteManagerList');
   if(!wrap) return;
@@ -2393,14 +2499,17 @@ function renderOasis(){
   if(items.length===0){ wrap.innerHTML = `<div class="empty"><b>Nothing here yet</b>Drop in a picture, a site, or a song worth keeping.</div>`; return; }
   wrap.innerHTML = [...items].sort((a,b)=>(b.createdAt||0)-(a.createdAt||0)).map(o=>{
     const media = o.type==='image' && o.imageUrl
-      ? `<img class="oasis-pic" src="${esc(o.imageUrl)}" alt="${esc(o.title||'')}">`
+      ? `<img class="oasis-pic" src="${esc(o.imageUrl)}" alt="${esc(o.title||'')}" loading="lazy">`
       : `<div class="oasis-icon-block" style="background:${o.type==='song'?'#F1E9F6':'#E7EEF3'};">${OASIS_ICONS[o.type]||'🖼️'}</div>`;
-    return `<div class="item-card" data-id="${o.id}">
+    const hasText = o.title || o.note || o.url;
+    return `<div class="oasis-item"><div class="item-card" data-id="${o.id}" style="padding:0;">
       ${media}
-      <div class="item-title">${esc(o.title||'(untitled)')}</div>
-      ${o.note? `<div class="item-sub">${esc(o.note)}</div>`:''}
-      ${o.url? `<div class="link-chip"><a href="${esc(o.url)}" target="_blank" rel="noopener">Open ↗</a></div>`:''}
-    </div>`;
+      ${hasText? `<div style="padding:12px 14px;">
+        ${o.title? `<div class="item-title">${esc(o.title)}</div>`:''}
+        ${o.note? `<div class="item-sub">${esc(o.note)}</div>`:''}
+        ${o.url? `<div class="link-chip"><a href="${esc(o.url)}" target="_blank" rel="noopener">Open ↗</a></div>`:''}
+      </div>` : ''}
+    </div></div>`;
   }).join('');
   wrap.querySelectorAll('.item-card').forEach(c=>c.addEventListener('click', (e)=>{
     if(e.target.closest('a')) return;
@@ -2435,7 +2544,7 @@ document.getElementById('saveOasisBtn').addEventListener('click', async ()=>{
     note: document.getElementById('o_note').value.trim(),
     updatedAt: Date.now()
   };
-  if(!data.title){ alert('Give it a title.'); return; }
+  if(!data.imageUrl && !data.url){ alert('Add an image or a link — everything else is optional.'); return; }
   const col = db.collection('users').doc(uid).collection('oasis');
   if(id) await col.doc(id).update(data); else await col.add({...data, createdAt: Date.now()});
   document.getElementById('oasisOverlay').classList.remove('active');
