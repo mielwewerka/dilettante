@@ -35,11 +35,13 @@
   --brick:#B23A2E;
   --line:#191510;
   --radius:12px;
-  --blue-desk:#5C84A6;
+  --blue-desk:#7C6FCB;
   --blue-companies:#8FB4C9;
   --blue-materials:#456B87;
   --blue-sources:#3A5A72;
   --blue-notebook:#A9CBDA;
+  --turquoise:#1FAFA8;
+  --babypink:#EFA0BC;
 }
 *{box-sizing:border-box;}
 body{margin:0;background:var(--paper);color:var(--ink);font-family:'Space Grotesk',sans-serif;min-height:100vh;}
@@ -98,6 +100,7 @@ button{font-family:inherit;cursor:pointer;}
 .toggle-group{display:flex;border:2px solid var(--ink);border-radius:var(--radius);overflow:hidden;}
 .toggle-group button{background:var(--paper-raised);border:none;padding:7px 16px;font-size:11.5px;font-family:'IBM Plex Mono';text-transform:uppercase;}
 .toggle-group button.on{background:var(--ink);color:var(--paper);}
+.sort-select{border:1px solid var(--ink);border-radius:var(--radius);padding:7px 10px;font-family:'IBM Plex Mono';font-size:11px;background:var(--paper-raised);color:var(--ink);}
 .btn{background:var(--ink);color:var(--paper);border:2px solid var(--ink);border-radius:var(--radius);padding:9px 16px;font-size:13px;font-weight:600;font-family:'Space Grotesk';display:inline-flex;align-items:center;gap:6px;}
 .btn:hover{background:var(--magenta-deep);border-color:var(--magenta-deep);}
 .btn.ghost{background:var(--paper-raised);color:var(--brick);border-color:var(--brick);}
@@ -105,7 +108,7 @@ button{font-family:inherit;cursor:pointer;}
 .btn.logout{background:none;color:var(--ink-dim);border:none;font-family:'IBM Plex Mono';font-size:10px;text-transform:uppercase;}
 
 .capture{background:var(--paper-raised);border:2px solid var(--ink);border-radius:var(--radius);padding:14px 16px;margin-bottom:20px;position:relative;}
-.capture-label{font-family:'IBM Plex Mono';font-size:10px;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;background:var(--mustard);display:inline-block;padding:2px 8px;border:1px solid var(--ink);}
+.capture-label{font-family:'IBM Plex Mono';font-size:10px;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;background:var(--turquoise);color:#fff;display:inline-block;padding:2px 8px;border:1px solid var(--ink);}
 .capture textarea{width:100%;border:1px solid var(--ink);border-radius:8px;padding:10px;font-family:'Space Grotesk';font-size:13px;resize:vertical;min-height:52px;background:var(--paper);}
 .capture-row{display:flex;justify-content:space-between;align-items:center;margin-top:9px;gap:10px;}
 .capture-hint{font-size:11px;color:var(--ink-dim);}
@@ -246,7 +249,10 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
       </div>
 
       <div class="toolbar">
-        <div class="toggle-group"><button id="btnBoard" class="on">Board</button><button id="btnList">List</button><button id="btnPages">Pages</button></div>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+          <div class="toggle-group"><button id="btnBoard" class="on">Board</button><button id="btnList">List</button><button id="btnPages">Pages</button></div>
+          <select id="deskSortSelect" class="sort-select"><option value="alpha">Sort: A–Z</option><option value="created">Sort: Date added</option><option value="updated">Sort: Last edited</option></select>
+        </div>
         <button class="btn" id="addAppBtn">+ New application</button>
       </div>
 
@@ -282,6 +288,9 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
         </div>
         <button class="btn" id="addRadarBtn">+ New opportunity</button>
       </div>
+      <div class="toolbar" style="margin-top:-6px;">
+        <select id="radarSortSelect" class="sort-select"><option value="alpha">Sort: A–Z</option><option value="created">Sort: Date added</option><option value="updated">Sort: Last edited</option></select>
+      </div>
       <div id="radarWrap" class="grid"></div>
     </div>
 
@@ -313,6 +322,9 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
     <!-- SOURCES -->
     <div class="view" id="view-sources">
       <div class="page-head"><svg class="cute-sparkle" width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2 L14.2 9.8 L22 12 L14.2 14.2 L12 22 L9.8 14.2 L2 12 L9.8 9.8 Z" fill="currentColor"/></svg><div><div class="page-title">Contacts</div><div class="page-tag">editors, referrals, and settings</div></div><div style="display:flex;gap:8px;"><button class="btn ghost" id="settingsBtn">Settings</button><button class="btn" id="addContactBtn">+ New contact</button></div></div>
+      <div class="toolbar" style="margin-top:0;">
+        <select id="contactsSortSelect" class="sort-select"><option value="alpha">Sort: A–Z</option><option value="created">Sort: Date added</option><option value="updated">Sort: Last edited</option></select>
+      </div>
       <div id="contactsWrap" class="grid"></div>
     </div>
 
@@ -785,7 +797,15 @@ function daysUntil(dateStr){
 }
 
 /* ---------------- BOARD / LIST ---------------- */
+function applySort(items, mode, textKey){
+  const arr = [...items];
+  if(mode==='alpha') arr.sort((a,b)=> (a[textKey]||'').localeCompare(b[textKey]||''));
+  else if(mode==='created') arr.sort((a,b)=> (b.createdAt||0)-(a.createdAt||0));
+  else if(mode==='updated') arr.sort((a,b)=> (b.updatedAt||b.createdAt||0)-(a.updatedAt||a.createdAt||0));
+  return arr;
+}
 let viewMode = 'board';
+let deskSort = 'alpha';
 let stagePageTab = 0;
 function renderDesk(){
   const boardWrap = document.getElementById('boardWrap');
@@ -796,9 +816,9 @@ function renderDesk(){
   pagesWrap.style.display = viewMode==='pages'? 'block':'none';
   if(viewMode==='board'){
     boardWrap.innerHTML = STAGES.map((s,idx)=>{
-      const items = DB.apps.filter(a=>a.stage==idx);
+      const items = applySort(DB.apps.filter(a=>a.stage==idx), deskSort, 'role');
       return `<div class="column">
-        <div class="column-head" style="background:${STAGE_COLORS[idx]}"><span class="badge">${dotBadge(idx,16)}</span><span class="column-title">${s}</span><span class="column-count">${items.length}</span></div>
+        <div class="column-head" style="background:var(--babypink)"><span class="badge">${dotBadge(idx,16)}</span><span class="column-title">${s}</span><span class="column-count">${items.length}</span></div>
         <div class="column-body" data-stage="${idx}">${items.map(cardHTML).join('')}</div>
       </div>`;
     }).join('');
@@ -806,7 +826,7 @@ function renderDesk(){
     boardWrap.querySelectorAll('.card').forEach(c=>c.addEventListener('click',()=>openAppView(c.dataset.id)));
   } else if(viewMode==='list'){
     if(DB.apps.length===0){ listWrap.innerHTML = `<div class="empty"><b>Nothing on the desk yet</b>Drop in a role you're eyeing, or paste one in above.</div>`; return; }
-    const sorted = [...DB.apps].sort((a,b)=> (a.deadline||'9999').localeCompare(b.deadline||'9999'));
+    const sorted = applySort(DB.apps, deskSort, 'role');
     listWrap.innerHTML = `<table><tr><th>Role</th><th>Company</th><th>Stage</th><th>Deadline</th><th>Next action</th></tr>
       ${sorted.map(a=>`<tr class="row" data-id="${a.id}">
         <td>${esc(a.role)}</td><td>${esc(a.company)}</td>
@@ -819,6 +839,7 @@ function renderDesk(){
     renderPagesGrid();
   }
 }
+document.getElementById('deskSortSelect').addEventListener('change', (e)=>{ deskSort = e.target.value; renderDesk(); });
 function renderStageTabBar(){
   const bar = document.getElementById('stageTabBar');
   bar.innerHTML = STAGES.map((s,idx)=>`<button data-stage-tab="${idx}" class="${idx===stagePageTab?'on':''}">${s}</button>`).join('');
@@ -830,7 +851,7 @@ function renderStageTabBar(){
 }
 function renderPagesGrid(){
   const grid = document.getElementById('pagesGrid');
-  const items = DB.apps.filter(a=>a.stage==stagePageTab);
+  const items = applySort(DB.apps.filter(a=>a.stage==stagePageTab), deskSort, 'role');
   if(items.length===0){ grid.innerHTML = `<div class="empty"><b>Nothing in ${STAGES[stagePageTab]} yet</b>Drag a card here from the board, or add a new application at this stage.</div>`; return; }
   grid.innerHTML = items.map(a=>{
     const dleft = daysUntil(a.deadline);
@@ -1415,7 +1436,7 @@ document.getElementById('deleteMaterialBtn').addEventListener('click', async ()=
 function renderContacts(){
   const wrap = document.getElementById('contactsWrap');
   if(DB.contacts.length===0){ wrap.innerHTML = `<div class="empty"><b>Your contact book is empty</b>Add the people who got you in the door.</div>`; return; }
-  wrap.innerHTML = DB.contacts.map(c=>{
+  wrap.innerHTML = applySort(DB.contacts, contactsSort, 'name').map(c=>{
     const apps = DB.apps.filter(a=>a.contactId===c.id);
     return `<div class="item-card" data-id="${c.id}">
       <div class="item-title">${esc(c.name)}</div><div class="item-sub">${esc(c.role||'')}${c.org? ' · '+esc(c.org):''}</div>${c.location? `<div class="item-sub">${esc(c.location)}</div>`:''}
@@ -1424,7 +1445,9 @@ function renderContacts(){
   }).join('');
   wrap.querySelectorAll('.item-card').forEach(c=>c.addEventListener('click',()=>openContactView(c.dataset.id)));
 }
+document.getElementById('contactsSortSelect').addEventListener('change', (e)=>{ contactsSort = e.target.value; renderContacts(); });
 let currentViewContactId = null;
+let contactsSort = 'alpha';
 function openContactView(id){
   const c = DB.contacts.find(x=>x.id===id);
   if(!c) return;
@@ -1569,6 +1592,7 @@ document.getElementById('deleteNoteBtn').addEventListener('click', async ()=>{
 /* ---------------- RADAR ---------------- */
 const RADAR_TYPE_LABELS = {job:'Job', fellowship:'Fellowship', grant:'Grant', fulbright:'Fulbright / Scholarship', gradschool:'Grad School', other:'Other'};
 let radarTab = 'all';
+let radarSort = 'alpha';
 document.querySelectorAll('.radar-tab').forEach(btn=>{
   btn.addEventListener('click', ()=>{
     document.querySelectorAll('.radar-tab').forEach(b=>b.classList.remove('on'));
@@ -1582,7 +1606,7 @@ function renderRadar(){
   if(!wrap) return;
   const items = radarTab==='all'? DB.radar : DB.radar.filter(r=>r.type===radarTab);
   if(items.length===0){ wrap.innerHTML = `<div class="empty"><b>Nothing on the radar yet</b>Paste in a program or opportunity you want to remember for later.</div>`; return; }
-  wrap.innerHTML = [...items].sort((a,b)=>(b.createdAt||0)-(a.createdAt||0)).map(r=>`
+  wrap.innerHTML = applySort(items, radarSort, 'title').map(r=>`
     <div class="item-card" data-id="${r.id}">
       <div class="item-title">${esc(r.title)}</div>
       <div class="item-sub">${esc(r.org||'')}</div>
@@ -1591,6 +1615,7 @@ function renderRadar(){
     </div>`).join('');
   wrap.querySelectorAll('.item-card').forEach(c=>c.addEventListener('click',()=>openRadarView(c.dataset.id)));
 }
+document.getElementById('radarSortSelect').addEventListener('change', (e)=>{ radarSort = e.target.value; renderRadar(); });
 
 let currentViewRadarId = null;
 function openRadarView(id){
