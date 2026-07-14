@@ -339,6 +339,7 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
           <span><span class="cal-dot" style="background:var(--magenta);"></span> Event</span>
           <span><span class="cal-dot" style="background:var(--brick);"></span> Deadline</span>
           <span><span class="cal-dot" style="background:var(--mustard);"></span> Long-term</span>
+          <span style="color:var(--ink-dim);">+ your own custom categories</span>
         </div>
       </div>
 
@@ -612,13 +613,17 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
     <div class="field-row">
       <div class="field"><label>Title</label><input id="e_title"></div>
       <div class="field"><label>Type</label><select id="e_type">
-        <option value="appointment">Appointment</option><option value="meeting">Meeting</option><option value="event">Event</option><option value="deadline">Deadline</option><option value="longterm">Long-term</option>
+        <option value="appointment">Appointment</option><option value="meeting">Meeting</option><option value="event">Event</option><option value="deadline">Deadline</option><option value="longterm">Long-term</option><option value="custom">Custom…</option>
       </select></div>
     </div>
+    <div class="field" id="e_customTypeWrap" style="display:none;"><label>Custom category name</label><input id="e_customType" placeholder="e.g. Family visit"></div>
     <div class="field-row">
-      <div class="field"><label id="e_date_label">Date</label><input type="date" id="e_date"></div>
-      <div class="field" id="e_endDateWrap" style="display:none;"><label>Through</label><input type="date" id="e_endDate"></div>
-      <div class="field" id="e_timeWrap"><label>Time</label><input type="time" id="e_time"></div>
+      <div class="field"><label>Date</label><input type="date" id="e_date"></div>
+      <div class="field"><label>End date <span style="text-transform:none;color:var(--ink-dim);">(optional — for multi-day)</span></label><input type="date" id="e_endDate"></div>
+    </div>
+    <div class="field-row" id="e_timeWrap">
+      <div class="field"><label>Start time</label><input type="time" id="e_time"></div>
+      <div class="field"><label>End time</label><input type="time" id="e_endTime"></div>
     </div>
     <div class="field"><label>Linked application</label><select id="e_app"><option value="">— none —</option></select></div>
     <div class="field"><label>Location</label><input id="e_location"></div>
@@ -1687,16 +1692,34 @@ document.getElementById('radarCaptureBtn').addEventListener('click', async ()=>{
 
 /* ---------------- CALENDAR ---------------- */
 const EVENT_TYPE_COLORS = {appointment:'var(--dustyblue)', meeting:'var(--olive)', event:'var(--magenta)', deadline:'var(--brick)', longterm:'var(--mustard)'};
-const EVENT_TYPE_COLORS_HEX = {appointment:'#5E8CA3', meeting:'#767A3D', event:'#D6236A', deadline:'#B23A2E', longterm:'#E8AE33'};
+const CUSTOM_TYPE_PALETTE = ['#423A6B','#5E8CA3','#767A3D','#D6236A','#B23A2E','#E8AE33','#8FB4C9'];
+function customTypeColor(name){
+  let h = 0; for(const ch of (name||'')) h = (h*31 + ch.charCodeAt(0)) % CUSTOM_TYPE_PALETTE.length;
+  return CUSTOM_TYPE_PALETTE[h];
+}
+function eventColor(e){
+  if(e.type==='custom') return customTypeColor(e.customType||'custom');
+  return EVENT_TYPE_COLORS[e.type] || 'var(--ink-dim)';
+}
+function eventLabel(e){
+  if(e.type==='custom') return e.customType || 'Custom';
+  return {appointment:'Appointment', meeting:'Meeting', event:'Event', deadline:'Deadline', longterm:'Long-term'}[e.type] || e.type;
+}
+function isMultiDay(e){ return !!(e.endDate && e.endDate !== e.date); }
 let calMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
 function dstr(d){ return d.toISOString? d.toISOString().slice(0,10) : d; }
 function pad2(n){ return n<10? '0'+n : ''+n; }
 function ymd(y,m,d){ return `${y}-${pad2(m+1)}-${pad2(d)}`; }
+function sortDayItems(items){
+  const multi = items.filter(isMultiDay);
+  const single = items.filter(e=>!isMultiDay(e)).sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+  return [...multi, ...single];
+}
 
 function eventsOnDate(dateStr){
   const items = [];
   DB.events.forEach(e=>{
-    if(e.type==='longterm' && e.endDate){
+    if(e.endDate && e.endDate!==e.date){
       if(dateStr>=e.date && dateStr<=e.endDate) items.push({...e, virtual:false});
     } else if(e.date===dateStr){
       items.push({...e, virtual:false});
@@ -1707,7 +1730,7 @@ function eventsOnDate(dateStr){
       items.push({id:'app-'+a.id, title:`Deadline: ${a.role} @ ${a.company}`, type:'deadline', date:dateStr, linkedAppId:a.id, virtual:true});
     }
   });
-  return items;
+  return sortDayItems(items);
 }
 function renderCalendar(){
   const grid = document.getElementById('calGrid');
@@ -1724,7 +1747,7 @@ function renderCalendar(){
   while(cells.length%7!==0 || cells.length<35) cells.push({day: cells.length-(firstDow+daysInMonth)+1, other:true, dateStr: ymd(month===11?year+1:year, month===11?0:month+1, cells.length-(firstDow+daysInMonth)+1)});
   grid.innerHTML = cells.map(c=>{
     const evs = eventsOnDate(c.dateStr);
-    const chips = evs.slice(0,3).map(e=>`<div class="cal-event-chip" style="background:${EVENT_TYPE_COLORS[e.type]||'var(--ink-dim)'}">${esc(e.title)}</div>`).join('');
+    const chips = evs.slice(0,3).map(e=>`<div class="cal-event-chip" style="background:${eventColor(e)}">${isMultiDay(e)?'⟷ ':''}${esc(e.title)}</div>`).join('');
     const more = evs.length>3? `<div style="font-size:9px;color:var(--ink-dim);">+${evs.length-3} more</div>` : '';
     return `<div class="cal-day ${c.other?'other-month':''} ${c.dateStr===todayStr?'today':''}" data-date="${c.dateStr}">
       <div class="cal-day-num">${c.day}</div>${chips}${more}
@@ -1744,7 +1767,7 @@ function renderUpcoming(){
   const upcoming = all.slice(0,10);
   wrap.innerHTML = upcoming.length? upcoming.map(e=>`
     <div class="linked-row" data-ev-id="${e.id}" data-ev-virtual="${e.virtual}" style="cursor:pointer;">
-      <span><span class="cal-dot" style="background:${EVENT_TYPE_COLORS[e.type]||'var(--ink-dim)'}"></span>${esc(e.title)}</span>
+      <span><span class="cal-dot" style="background:${eventColor(e)}"></span>${isMultiDay(e)?'<span class="tag" style="margin-right:6px;">All day</span>':''}${esc(e.title)}</span>
       <span class="tag">${e.date}${e.endDate? ' → '+e.endDate:''}</span>
     </div>`).join('') : `<div style="font-size:12px;color:var(--ink-dim);">Nothing coming up.</div>`;
   wrap.querySelectorAll('[data-ev-id]').forEach(el=>el.addEventListener('click', ()=>{
@@ -1757,11 +1780,14 @@ function openDayView(dateStr){
   currentDayViewDate = dateStr;
   const evs = eventsOnDate(dateStr);
   document.getElementById('dv_date').textContent = new Date(dateStr+'T00:00:00').toLocaleDateString('en-US', {weekday:'long', month:'long', day:'numeric', year:'numeric'});
-  document.getElementById('dv_list').innerHTML = evs.length? evs.map(e=>`
-    <div class="linked-row" data-ev-id="${e.id}" data-ev-virtual="${e.virtual}" style="cursor:pointer;">
-      <span><span class="cal-dot" style="background:${EVENT_TYPE_COLORS[e.type]||'var(--ink-dim)'}"></span>${esc(e.title)}</span>
-      <span class="tag">${e.type}</span>
-    </div>`).join('') : `<div style="font-size:12px;color:var(--ink-dim);">Nothing on this day yet.</div>`;
+  document.getElementById('dv_list').innerHTML = evs.length? evs.map(e=>{
+    const multi = isMultiDay(e);
+    const timeStr = !multi && e.time? (e.time + (e.endTime? '–'+e.endTime : '')) : '';
+    return `<div class="linked-row" data-ev-id="${e.id}" data-ev-virtual="${e.virtual}" style="cursor:pointer;">
+      <span><span class="cal-dot" style="background:${eventColor(e)}"></span>${esc(e.title)}</span>
+      <span class="tag">${multi? 'All day' : (timeStr || eventLabel(e))}</span>
+    </div>`;
+  }).join('') : `<div style="font-size:12px;color:var(--ink-dim);">Nothing on this day yet.</div>`;
   document.getElementById('dv_list').querySelectorAll('[data-ev-id]').forEach(el=>el.addEventListener('click', ()=>{
     document.getElementById('dayViewOverlay').classList.remove('active');
     if(el.dataset.evVirtual==='true') openAppView(el.dataset.evId.replace('app-',''));
@@ -1783,8 +1809,7 @@ function populateEventAppSelect(selectedId){
   el.value = selectedId||'';
 }
 document.getElementById('e_type').addEventListener('change', (e)=>{
-  document.getElementById('e_endDateWrap').style.display = e.target.value==='longterm'? 'block':'none';
-  document.getElementById('e_date_label').textContent = e.target.value==='longterm'? 'From' : 'Date';
+  document.getElementById('e_customTypeWrap').style.display = e.target.value==='custom'? 'block':'none';
 });
 function openEventModal(id, prefillDate){
   const isEdit = !!id;
@@ -1794,14 +1819,15 @@ function openEventModal(id, prefillDate){
   document.getElementById('e_id').value = id||'';
   document.getElementById('e_title').value = ev.title||'';
   document.getElementById('e_type').value = ev.type||'appointment';
+  document.getElementById('e_customType').value = ev.customType||'';
+  document.getElementById('e_customTypeWrap').style.display = (ev.type==='custom')? 'block':'none';
   document.getElementById('e_date').value = ev.date||'';
   document.getElementById('e_endDate').value = ev.endDate||'';
   document.getElementById('e_time').value = ev.time||'';
+  document.getElementById('e_endTime').value = ev.endTime||'';
   document.getElementById('e_location').value = ev.location||'';
   document.getElementById('e_notes').value = ev.notes||'';
   populateEventAppSelect(ev.linkedAppId);
-  document.getElementById('e_endDateWrap').style.display = (ev.type==='longterm')? 'block':'none';
-  document.getElementById('e_date_label').textContent = (ev.type==='longterm')? 'From' : 'Date';
   document.getElementById('eventOverlay').classList.add('active');
 }
 document.getElementById('addEventBtn').addEventListener('click', ()=>openEventModal(null));
@@ -1810,15 +1836,18 @@ document.getElementById('saveEventBtn').addEventListener('click', async ()=>{
   const data = {
     title: document.getElementById('e_title').value.trim(),
     type: document.getElementById('e_type').value,
+    customType: document.getElementById('e_type').value==='custom'? document.getElementById('e_customType').value.trim() : '',
     date: document.getElementById('e_date').value,
-    endDate: document.getElementById('e_type').value==='longterm'? document.getElementById('e_endDate').value : '',
+    endDate: document.getElementById('e_endDate').value,
     time: document.getElementById('e_time').value,
+    endTime: document.getElementById('e_endTime').value,
     linkedAppId: document.getElementById('e_app').value,
     location: document.getElementById('e_location').value.trim(),
     notes: document.getElementById('e_notes').value.trim(),
     updatedAt: Date.now()
   };
   if(!data.title || !data.date){ alert('Give it a title and a date.'); return; }
+  if(data.type==='custom' && !data.customType){ alert('Give the custom category a name.'); return; }
   const col = db.collection('users').doc(uid).collection('events');
   if(id) await col.doc(id).update(data); else await col.add({...data, createdAt: Date.now()});
   document.getElementById('eventOverlay').classList.remove('active');
