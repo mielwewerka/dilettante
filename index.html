@@ -19,7 +19,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 
 <style>
 :root{
@@ -201,6 +201,7 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
     </div>
     <div class="nav">
       <button class="nav-item active" data-view="desk">The Desk</button>
+      <button class="nav-item" data-view="radar">Radar</button>
       <button class="nav-item" data-view="companies">Companies</button>
       <button class="nav-item" data-view="materials">Application Materials</button>
       <button class="nav-item" data-view="sources">Contacts</button>
@@ -232,12 +233,43 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
       </div>
 
       <div class="toolbar">
-        <div class="toggle-group"><button id="btnBoard" class="on">Board</button><button id="btnList">List</button></div>
+        <div class="toggle-group"><button id="btnBoard" class="on">Board</button><button id="btnList">List</button><button id="btnPages">Pages</button></div>
         <button class="btn" id="addAppBtn">+ New application</button>
       </div>
 
       <div id="boardWrap" class="board"></div>
       <div id="listWrap" style="display:none;"></div>
+      <div id="pagesWrap" style="display:none;">
+        <div class="toggle-group" id="stageTabBar" style="margin-bottom:14px;"></div>
+        <div id="pagesGrid" class="grid"></div>
+      </div>
+    </div>
+
+    <!-- RADAR -->
+    <div class="view" id="view-radar">
+      <div class="page-head"><svg class="cute-sparkle" width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2 L14.2 9.8 L22 12 L14.2 14.2 L12 22 L9.8 14.2 L2 12 L9.8 9.8 Z" fill="currentColor"/></svg><div><div class="page-title">Radar</div><div class="page-tag">not open yet, but worth watching</div></div></div>
+
+      <div class="capture">
+        <div class="capture-label">Quick capture</div>
+        <textarea id="radarCaptureInput" placeholder="Paste a program page, fellowship description, or grant listing here..."></textarea>
+        <div class="capture-row">
+          <span class="capture-hint" id="radarCaptureHint"></span>
+          <button class="btn small" id="radarCaptureBtn">Parse &amp; add</button>
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <div class="toggle-group">
+          <button class="radar-tab on" data-tab="all">All</button>
+          <button class="radar-tab" data-tab="job">Jobs</button>
+          <button class="radar-tab" data-tab="fellowship">Fellowships</button>
+          <button class="radar-tab" data-tab="grant">Grants</button>
+          <button class="radar-tab" data-tab="gradschool">Grad School</button>
+          <button class="radar-tab" data-tab="other">Other</button>
+        </div>
+        <button class="btn" id="addRadarBtn">+ New opportunity</button>
+      </div>
+      <div id="radarWrap" class="grid"></div>
     </div>
 
     <!-- COMPANIES -->
@@ -291,6 +323,7 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
     <div id="view_link"></div>
     <div class="linked-list" id="view_fields"></div>
     <div class="item-sub" id="view_notes" style="margin-top:12px;white-space:pre-wrap;color:var(--ink);"></div>
+    <div id="view_requirements"></div>
     <div id="view_materials"></div>
     <div class="modal-actions">
       <button class="btn ghost" id="viewDeleteBtn">Delete</button>
@@ -329,6 +362,16 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
     <div class="field"><label>Linked company record</label><select id="f_companyId"><option value="">— none —</option></select></div>
     <div class="field"><label>Source / referral</label><select id="f_contact"><option value="">— none —</option></select></div>
     <div class="field"><label>Next action</label><input id="f_next" placeholder="e.g. Follow up with editor Thursday"></div>
+    <div class="field"><label>What the application requires</label>
+      <div style="display:flex;flex-wrap:wrap;gap:12px;font-size:12.5px;margin-top:4px;">
+        <label style="display:flex;align-items:center;gap:5px;"><input type="checkbox" id="req_resume"> Resume</label>
+        <label style="display:flex;align-items:center;gap:5px;"><input type="checkbox" id="req_coverLetter"> Cover letter</label>
+        <label style="display:flex;align-items:center;gap:5px;"><input type="checkbox" id="req_writingSamples"> Writing samples / portfolio</label>
+        <label style="display:flex;align-items:center;gap:5px;"><input type="checkbox" id="req_references"> References / rec letters</label>
+        <label style="display:flex;align-items:center;gap:5px;"><input type="checkbox" id="req_transcript"> Transcript</label>
+      </div>
+      <input id="req_other" placeholder="Anything else required (comma separated)" style="margin-top:8px;">
+    </div>
     <div class="field"><label>Notes</label><textarea id="f_notes"></textarea></div>
     <div id="app_materials"></div>
     <div class="modal-actions">
@@ -464,6 +507,46 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
   </div>
 </div>
 
+<!-- RADAR VIEW MODAL (read-only) -->
+<div class="overlay" id="radarViewOverlay">
+  <div class="modal">
+    <button class="close" data-close="radarViewOverlay">&times;</button>
+    <div id="rv_type_badge" style="margin-bottom:8px;"></div>
+    <h2 id="rv_title" style="margin-bottom:2px;"></h2>
+    <div class="item-sub" id="rv_org" style="margin-bottom:12px;"></div>
+    <div id="rv_link"></div>
+    <div class="linked-list" id="rv_fields"></div>
+    <div class="item-sub" id="rv_notes" style="margin-top:12px;white-space:pre-wrap;color:var(--ink);"></div>
+    <div class="modal-actions">
+      <button class="btn ghost" id="rvDeleteBtn">Delete</button>
+      <div style="display:flex;gap:8px;">
+        <button class="btn ghost" id="rvEditBtn">Edit</button>
+        <button class="btn" id="rvMoveBtn">→ Move to The Desk</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- RADAR MODAL -->
+<div class="overlay" id="radarOverlay">
+  <div class="modal">
+    <button class="close" data-close="radarOverlay">&times;</button>
+    <h2 id="radarModalTitle">New opportunity</h2>
+    <input type="hidden" id="r_id">
+    <div class="field-row">
+      <div class="field"><label>Title</label><input id="r_title" placeholder="e.g. Fulbright U.S. Student Program"></div>
+      <div class="field"><label>Type</label><select id="r_type">
+        <option value="job">Job</option><option value="fellowship">Fellowship</option><option value="grant">Grant</option><option value="fulbright">Fulbright / Scholarship</option><option value="gradschool">Grad School</option><option value="other">Other</option>
+      </select></div>
+    </div>
+    <div class="field"><label>Organization</label><input id="r_org"></div>
+    <div class="field"><label>Link</label><input id="r_link" placeholder="https://"></div>
+    <div class="field"><label>When it might open / worth checking back</label><input id="r_watch" placeholder="e.g. Cycle usually opens each September"></div>
+    <div class="field"><label>Notes</label><textarea id="r_notes"></textarea></div>
+    <div class="modal-actions"><button class="btn ghost" id="deleteRadarBtn" style="display:none;">Delete</button><button class="btn" id="saveRadarBtn">Save opportunity</button></div>
+  </div>
+</div>
+
 <!-- NOTE MODAL -->
 <div class="overlay" id="noteOverlay">
   <div class="modal">
@@ -502,10 +585,20 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
-const storage = firebase.storage();
+
+/* ===================== SUPABASE CONFIG (for PDF storage — free, no card needed) =====================
+1. Create a free project at https://supabase.com (no credit card required)
+2. Project Settings > Data API — copy the "Project URL" and the "anon public" API key
+3. Paste them below
+4. Storage (left sidebar) > New bucket > name it "materials" > make it Public
+5. Storage > Policies > New policy on the "materials" bucket: allow INSERT, SELECT, UPDATE, DELETE for anon/public role
+   (see SETUP.md for exact policy SQL) */
+const SUPABASE_URL = "https://ukapfgdzbgkcxlxikmhi.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_47fNipS43Sv58nOeRddQ8g_ikMGPZ2r";
+const supabase = (SUPABASE_URL !== "PASTE_ME") ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
 let uid = null;
-let DB = {apps:[], materials:[], contacts:[], notes:[], companies:[]};
+let DB = {apps:[], materials:[], contacts:[], notes:[], companies:[], radar:[]};
 let inboxItems = [];
 let settings = {apiKey:''};
 let unsubs = [];
@@ -550,6 +643,7 @@ function attachListeners(){
   unsubs.push(col('contacts').onSnapshot(snap=>{ DB.contacts = snap.docs.map(d=>({id:d.id, ...d.data()})); renderContacts(); }));
   unsubs.push(col('companies').onSnapshot(snap=>{ DB.companies = snap.docs.map(d=>({id:d.id, ...d.data()})); renderCompanies(); }));
   unsubs.push(col('notes').onSnapshot(snap=>{ DB.notes = snap.docs.map(d=>({id:d.id, ...d.data()})); renderNotebook(); }));
+  unsubs.push(col('radar').onSnapshot(snap=>{ DB.radar = snap.docs.map(d=>({id:d.id, ...d.data()})); renderRadar(); }));
   unsubs.push(db.collection('users').doc(uid).collection('settings').doc('main').onSnapshot(doc=>{
     settings = doc.exists ? doc.data() : {apiKey:''};
   }));
@@ -598,11 +692,15 @@ function daysUntil(dateStr){
 
 /* ---------------- BOARD / LIST ---------------- */
 let viewMode = 'board';
+let stagePageTab = 0;
 function renderDesk(){
   const boardWrap = document.getElementById('boardWrap');
   const listWrap = document.getElementById('listWrap');
+  const pagesWrap = document.getElementById('pagesWrap');
+  boardWrap.style.display = viewMode==='board'? 'grid':'none';
+  listWrap.style.display = viewMode==='list'? 'block':'none';
+  pagesWrap.style.display = viewMode==='pages'? 'block':'none';
   if(viewMode==='board'){
-    boardWrap.style.display='grid'; listWrap.style.display='none';
     boardWrap.innerHTML = STAGES.map((s,idx)=>{
       const items = DB.apps.filter(a=>a.stage==idx);
       return `<div class="column">
@@ -612,8 +710,7 @@ function renderDesk(){
     }).join('');
     setupDragDrop();
     boardWrap.querySelectorAll('.card').forEach(c=>c.addEventListener('click',()=>openAppView(c.dataset.id)));
-  } else {
-    boardWrap.style.display='none'; listWrap.style.display='block';
+  } else if(viewMode==='list'){
     if(DB.apps.length===0){ listWrap.innerHTML = `<div class="empty"><b>Nothing on the desk yet</b>Drop in a role you're eyeing, or paste one in above.</div>`; return; }
     const sorted = [...DB.apps].sort((a,b)=> (a.deadline||'9999').localeCompare(b.deadline||'9999'));
     listWrap.innerHTML = `<table><tr><th>Role</th><th>Company</th><th>Stage</th><th>Deadline</th><th>Next action</th></tr>
@@ -623,7 +720,34 @@ function renderDesk(){
         <td>${a.deadline||'—'}</td><td>${esc(a.nextAction||'—')}</td>
       </tr>`).join('')}</table>`;
     listWrap.querySelectorAll('.row').forEach(r=>r.addEventListener('click',()=>openAppView(r.dataset.id)));
+  } else {
+    renderStageTabBar();
+    renderPagesGrid();
   }
+}
+function renderStageTabBar(){
+  const bar = document.getElementById('stageTabBar');
+  bar.innerHTML = STAGES.map((s,idx)=>`<button data-stage-tab="${idx}" class="${idx===stagePageTab?'on':''}">${s}</button>`).join('');
+  bar.querySelectorAll('button').forEach(btn=>btn.addEventListener('click', ()=>{
+    stagePageTab = parseInt(btn.dataset.stageTab);
+    renderStageTabBar();
+    renderPagesGrid();
+  }));
+}
+function renderPagesGrid(){
+  const grid = document.getElementById('pagesGrid');
+  const items = DB.apps.filter(a=>a.stage==stagePageTab);
+  if(items.length===0){ grid.innerHTML = `<div class="empty"><b>Nothing in ${STAGES[stagePageTab]} yet</b>Drag a card here from the board, or add a new application at this stage.</div>`; return; }
+  grid.innerHTML = items.map(a=>{
+    const dleft = daysUntil(a.deadline);
+    const soon = dleft!==null && dleft<=5;
+    return `<div class="item-card" data-id="${a.id}">
+      <div class="item-title">${esc(a.role)}</div>
+      <div class="item-sub">${esc(a.company)}${a.location? ' · '+esc(a.location):''}</div>
+      ${a.deadline? `<div class="link-chip ${soon?'soon':''}" style="${soon?'color:var(--brick);':''}">${dleft>=0? dleft+'d left':'past due'}</div>`:''}
+    </div>`;
+  }).join('');
+  grid.querySelectorAll('.item-card').forEach(c=>c.addEventListener('click',()=>openAppView(c.dataset.id)));
 }
 function cardHTML(a){
   const dleft = daysUntil(a.deadline);
@@ -645,11 +769,16 @@ function setupDragDrop(){
     });
   });
 }
-document.getElementById('btnBoard').addEventListener('click', ()=>{ viewMode='board'; document.getElementById('btnBoard').classList.add('on'); document.getElementById('btnList').classList.remove('on'); renderDesk(); });
-document.getElementById('btnList').addEventListener('click', ()=>{ viewMode='list'; document.getElementById('btnList').classList.add('on'); document.getElementById('btnBoard').classList.remove('on'); renderDesk(); });
+document.getElementById('btnBoard').addEventListener('click', ()=>{ viewMode='board'; setActiveToggle('btnBoard'); renderDesk(); });
+document.getElementById('btnList').addEventListener('click', ()=>{ viewMode='list'; setActiveToggle('btnList'); renderDesk(); });
+document.getElementById('btnPages').addEventListener('click', ()=>{ viewMode='pages'; setActiveToggle('btnPages'); renderDesk(); });
+function setActiveToggle(activeId){
+  ['btnBoard','btnList','btnPages'].forEach(id=>document.getElementById(id).classList.toggle('on', id===activeId));
+}
 
 /* ---------------- APPLICATION VIEW (read-only) ---------------- */
 let currentViewAppId = null;
+let pendingRadarDeleteId = null;
 function openAppView(id){
   const a = DB.apps.find(x=>x.id===id);
   if(!a) return;
@@ -670,6 +799,11 @@ function openAppView(id){
   const notesEl = document.getElementById('view_notes');
   notesEl.textContent = a.notes || '';
   notesEl.style.display = a.notes? 'block':'none';
+  const req = a.requirements||{};
+  const reqLabels = {resume:'Resume', coverLetter:'Cover letter', writingSamples:'Writing samples / portfolio', references:'References / rec letters', transcript:'Transcript'};
+  const reqItems = Object.keys(reqLabels).filter(k=>req[k]).map(k=>reqLabels[k]);
+  if(req.other) req.other.split(',').map(s=>s.trim()).filter(Boolean).forEach(s=>reqItems.push(s));
+  document.getElementById('view_requirements').innerHTML = reqItems.length? `<label style="display:block;font-family:'IBM Plex Mono';font-size:10px;letter-spacing:0.5px;text-transform:uppercase;color:var(--ink-dim);margin:16px 0 6px;">Requires</label><div class="item-tags">${reqItems.map(i=>`<span class="tag">${esc(i)}</span>`).join('')}</div>` : '';
   renderViewMaterials(id);
   document.getElementById('appViewOverlay').classList.add('active');
   const gotoBtn = document.querySelector('[data-goto-company]');
@@ -1003,6 +1137,13 @@ function openAppModal(id, prefill){
   document.getElementById('f_contact').value = a.contactId||'';
   document.getElementById('f_next').value = a.nextAction||'';
   document.getElementById('f_notes').value = a.notes||'';
+  const req = a.requirements||{};
+  document.getElementById('req_resume').checked = !!req.resume;
+  document.getElementById('req_coverLetter').checked = !!req.coverLetter;
+  document.getElementById('req_writingSamples').checked = !!req.writingSamples;
+  document.getElementById('req_references').checked = !!req.references;
+  document.getElementById('req_transcript').checked = !!req.transcript;
+  document.getElementById('req_other').value = req.other||'';
   const linkDisp = document.getElementById('appLinkDisplay');
   linkDisp.innerHTML = a.link? `<a href="${esc(a.link)}" target="_blank" rel="noopener" class="tag" style="display:inline-flex;padding:6px 10px;text-decoration:none;">View posting ↗</a>` : '';
   const matWrap = document.getElementById('app_materials');
@@ -1025,11 +1166,24 @@ document.getElementById('saveAppBtn').addEventListener('click', async ()=>{
     link: document.getElementById('f_link').value.trim(), companyId: document.getElementById('f_companyId').value,
     contactId: document.getElementById('f_contact').value,
     nextAction: document.getElementById('f_next').value.trim(),
-    notes: document.getElementById('f_notes').value.trim(), updatedAt: Date.now()
+    notes: document.getElementById('f_notes').value.trim(),
+    requirements: {
+      resume: document.getElementById('req_resume').checked,
+      coverLetter: document.getElementById('req_coverLetter').checked,
+      writingSamples: document.getElementById('req_writingSamples').checked,
+      references: document.getElementById('req_references').checked,
+      transcript: document.getElementById('req_transcript').checked,
+      other: document.getElementById('req_other').value.trim()
+    },
+    updatedAt: Date.now()
   };
   if(!data.role || !data.company){ alert('Add at least a role and company.'); return; }
   const col = db.collection('users').doc(uid).collection('applications');
   if(id) await col.doc(id).update(data); else await col.add({...data, createdAt: Date.now()});
+  if(pendingRadarDeleteId){
+    await db.collection('users').doc(uid).collection('radar').doc(pendingRadarDeleteId).delete();
+    pendingRadarDeleteId = null;
+  }
   document.getElementById('appOverlay').classList.remove('active');
 });
 document.getElementById('deleteAppBtn').addEventListener('click', async ()=>{
@@ -1039,8 +1193,13 @@ document.getElementById('deleteAppBtn').addEventListener('click', async ()=>{
 });
 
 /* ---------------- OVERLAY CLOSE ---------------- */
-document.querySelectorAll('[data-close]').forEach(btn=> btn.addEventListener('click', ()=> document.getElementById(btn.dataset.close).classList.remove('active')));
-document.querySelectorAll('.overlay').forEach(ov=> ov.addEventListener('click', e=>{ if(e.target===ov) ov.classList.remove('active'); }));
+document.querySelectorAll('[data-close]').forEach(btn=> btn.addEventListener('click', ()=>{
+  document.getElementById(btn.dataset.close).classList.remove('active');
+  if(btn.dataset.close==='appOverlay') pendingRadarDeleteId = null;
+}));
+document.querySelectorAll('.overlay').forEach(ov=> ov.addEventListener('click', e=>{
+  if(e.target===ov){ ov.classList.remove('active'); if(ov.id==='appOverlay') pendingRadarDeleteId = null; }
+}));
 
 /* ---------------- MATERIALS ---------------- */
 let materialsTab = 'resume';
@@ -1119,19 +1278,24 @@ document.getElementById('saveMaterialBtn').addEventListener('click', async ()=>{
   saveBtn.disabled = true;
   try{
     if(fileInput.files[0]){
+      if(!supabase){ statusEl.textContent = "PDF storage isn't set up yet — see SETUP.md."; saveBtn.disabled = false; return; }
       const file = fileInput.files[0];
       statusEl.textContent = 'Uploading PDF...';
-      const ref = storage.ref(`users/${uid}/materials/${id}/${file.name}`);
-      await ref.put(file);
-      data.fileUrl = await ref.getDownloadURL();
+      const path = `users/${uid}/materials/${id}/${file.name}`;
+      const { error: uploadError } = await supabase.storage.from('materials').upload(path, file, { upsert: true });
+      if(uploadError) throw uploadError;
+      const { data: urlData } = supabase.storage.from('materials').getPublicUrl(path);
+      data.fileUrl = urlData.publicUrl;
       data.fileName = file.name;
+      data.filePath = path;
     } else if(removeCheckbox && removeCheckbox.checked){
       const existing = DB.materials.find(x=>x.id===existingId);
-      if(existing && existing.fileUrl){
-        try{ await storage.refFromURL(existing.fileUrl).delete(); }catch(e){ console.error('Storage delete failed', e); }
+      if(existing && existing.filePath && supabase){
+        try{ await supabase.storage.from('materials').remove([existing.filePath]); }catch(e){ console.error('Storage delete failed', e); }
       }
       data.fileUrl = firebase.firestore.FieldValue.delete();
       data.fileName = firebase.firestore.FieldValue.delete();
+      data.filePath = firebase.firestore.FieldValue.delete();
     }
     if(!existingId) data.createdAt = Date.now();
     await col.doc(id).set(data, {merge:true});
@@ -1146,8 +1310,8 @@ document.getElementById('saveMaterialBtn').addEventListener('click', async ()=>{
 document.getElementById('deleteMaterialBtn').addEventListener('click', async ()=>{
   const id = document.getElementById('m_id').value;
   const existing = DB.materials.find(x=>x.id===id);
-  if(existing && existing.fileUrl){
-    try{ await storage.refFromURL(existing.fileUrl).delete(); }catch(e){ console.error('Storage delete failed', e); }
+  if(existing && existing.filePath && supabase){
+    try{ await supabase.storage.from('materials').remove([existing.filePath]); }catch(e){ console.error('Storage delete failed', e); }
   }
   await db.collection('users').doc(uid).collection('materials').doc(id).delete();
   document.getElementById('materialOverlay').classList.remove('active');
@@ -1306,6 +1470,130 @@ document.getElementById('deleteNoteBtn').addEventListener('click', async ()=>{
   const id = document.getElementById('n_id').value;
   await db.collection('users').doc(uid).collection('notes').doc(id).delete();
   document.getElementById('noteOverlay').classList.remove('active');
+});
+
+/* ---------------- RADAR ---------------- */
+const RADAR_TYPE_LABELS = {job:'Job', fellowship:'Fellowship', grant:'Grant', fulbright:'Fulbright / Scholarship', gradschool:'Grad School', other:'Other'};
+let radarTab = 'all';
+document.querySelectorAll('.radar-tab').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.radar-tab').forEach(b=>b.classList.remove('on'));
+    btn.classList.add('on');
+    radarTab = btn.dataset.tab;
+    renderRadar();
+  });
+});
+function renderRadar(){
+  const wrap = document.getElementById('radarWrap');
+  if(!wrap) return;
+  const items = radarTab==='all'? DB.radar : DB.radar.filter(r=>r.type===radarTab);
+  if(items.length===0){ wrap.innerHTML = `<div class="empty"><b>Nothing on the radar yet</b>Paste in a program or opportunity you want to remember for later.</div>`; return; }
+  wrap.innerHTML = [...items].sort((a,b)=>(b.createdAt||0)-(a.createdAt||0)).map(r=>`
+    <div class="item-card" data-id="${r.id}">
+      <div class="item-title">${esc(r.title)}</div>
+      <div class="item-sub">${esc(r.org||'')}</div>
+      <div class="item-tags"><span class="tag">${RADAR_TYPE_LABELS[r.type]||'Other'}</span></div>
+      ${r.watch? `<div class="link-chip">${esc(r.watch)}</div>`:''}
+    </div>`).join('');
+  wrap.querySelectorAll('.item-card').forEach(c=>c.addEventListener('click',()=>openRadarView(c.dataset.id)));
+}
+
+let currentViewRadarId = null;
+function openRadarView(id){
+  const r = DB.radar.find(x=>x.id===id);
+  if(!r) return;
+  currentViewRadarId = id;
+  document.getElementById('rv_type_badge').innerHTML = `<span class="tag">${RADAR_TYPE_LABELS[r.type]||'Other'}</span>`;
+  document.getElementById('rv_title').textContent = r.title;
+  document.getElementById('rv_org').textContent = r.org||'';
+  document.getElementById('rv_link').innerHTML = r.link? `<a href="${esc(r.link)}" target="_blank" rel="noopener" class="tag" style="display:inline-flex;padding:6px 10px;text-decoration:none;margin-bottom:12px;">View ↗</a>` : '';
+  document.getElementById('rv_fields').innerHTML = r.watch? `<div class="linked-row"><span style="color:var(--ink-dim);">Watch for</span><span>${esc(r.watch)}</span></div>` : '';
+  const notesEl = document.getElementById('rv_notes');
+  notesEl.textContent = r.notes||'';
+  notesEl.style.display = r.notes? 'block':'none';
+  document.getElementById('radarViewOverlay').classList.add('active');
+}
+document.getElementById('rvEditBtn').addEventListener('click', ()=>{
+  document.getElementById('radarViewOverlay').classList.remove('active');
+  openRadarModal(currentViewRadarId);
+});
+document.getElementById('rvDeleteBtn').addEventListener('click', async ()=>{
+  if(!confirm('Remove this from the radar?')) return;
+  await db.collection('users').doc(uid).collection('radar').doc(currentViewRadarId).delete();
+  document.getElementById('radarViewOverlay').classList.remove('active');
+});
+document.getElementById('rvMoveBtn').addEventListener('click', ()=>{
+  const r = DB.radar.find(x=>x.id===currentViewRadarId);
+  document.getElementById('radarViewOverlay').classList.remove('active');
+  pendingRadarDeleteId = currentViewRadarId;
+  openAppModal(null, {role: r.title, company: r.org||'', link: r.link||'', notes: r.notes||''});
+});
+
+function openRadarModal(id){
+  const isEdit = !!id;
+  document.getElementById('radarModalTitle').textContent = isEdit?'Edit opportunity':'New opportunity';
+  document.getElementById('deleteRadarBtn').style.display = isEdit?'inline-flex':'none';
+  const r = isEdit? DB.radar.find(x=>x.id===id) : {};
+  document.getElementById('r_id').value = id||'';
+  document.getElementById('r_title').value = r.title||'';
+  document.getElementById('r_type').value = r.type||'job';
+  document.getElementById('r_org').value = r.org||'';
+  document.getElementById('r_link').value = r.link||'';
+  document.getElementById('r_watch').value = r.watch||'';
+  document.getElementById('r_notes').value = r.notes||'';
+  document.getElementById('radarOverlay').classList.add('active');
+}
+document.getElementById('addRadarBtn').addEventListener('click', ()=>openRadarModal(null));
+document.getElementById('saveRadarBtn').addEventListener('click', async ()=>{
+  const id = document.getElementById('r_id').value;
+  const data = {
+    title: document.getElementById('r_title').value.trim(),
+    type: document.getElementById('r_type').value,
+    org: document.getElementById('r_org').value.trim(),
+    link: document.getElementById('r_link').value.trim(),
+    watch: document.getElementById('r_watch').value.trim(),
+    notes: document.getElementById('r_notes').value.trim(),
+    updatedAt: Date.now()
+  };
+  if(!data.title){ alert('Give it a title.'); return; }
+  const col = db.collection('users').doc(uid).collection('radar');
+  if(id) await col.doc(id).update(data); else await col.add({...data, createdAt: Date.now()});
+  document.getElementById('radarOverlay').classList.remove('active');
+});
+document.getElementById('deleteRadarBtn').addEventListener('click', async ()=>{
+  const id = document.getElementById('r_id').value;
+  await db.collection('users').doc(uid).collection('radar').doc(id).delete();
+  document.getElementById('radarOverlay').classList.remove('active');
+});
+
+function guessRadarType(text){
+  const t = text.toLowerCase();
+  if(/fulbright/.test(t)) return 'fulbright';
+  if(/fellowship/.test(t)) return 'fellowship';
+  if(/\bgrant\b/.test(t)) return 'grant';
+  if(/\b(m\.?a\.?|m\.?f\.?a\.?|ph\.?d|graduate program|grad school|master'?s)\b/.test(t)) return 'gradschool';
+  if(/\b(job|hiring|position|role)\b/.test(t)) return 'job';
+  return 'other';
+}
+document.getElementById('radarCaptureBtn').addEventListener('click', async ()=>{
+  const raw = document.getElementById('radarCaptureInput').value.trim();
+  const hint = document.getElementById('radarCaptureHint');
+  if(!raw) return;
+  hint.textContent = 'Reading...';
+  try{
+    const parsed = await parseListingText(raw);
+    document.getElementById('radarCaptureInput').value = '';
+    hint.textContent = '';
+    openRadarModal(null);
+    document.getElementById('r_title').value = parsed.role || '';
+    document.getElementById('r_org').value = parsed.company || '';
+    document.getElementById('r_link').value = parsed.link || '';
+    document.getElementById('r_watch').value = parsed.deadline || '';
+    document.getElementById('r_type').value = guessRadarType(raw);
+  }catch(e){
+    hint.textContent = "Couldn't parse that — add it manually below.";
+    console.error(e);
+  }
 });
 
 /* ---------------- SETTINGS ---------------- */
