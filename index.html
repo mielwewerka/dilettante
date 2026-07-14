@@ -19,7 +19,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
 :root{
@@ -135,6 +135,18 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
 
 /* ---------- GRID CARDS ---------- */
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;}
+
+/* ---------- CALENDAR ---------- */
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;}
+#calGridHead{margin-bottom:6px;}
+#calGridHead div{font-family:'IBM Plex Mono';font-size:10px;text-transform:uppercase;color:var(--ink-dim);text-align:center;padding:4px 0;}
+.cal-day{background:var(--paper-raised);border:1px solid var(--ink);border-radius:8px;min-height:78px;padding:6px;cursor:pointer;display:flex;flex-direction:column;gap:3px;}
+.cal-day:hover{border-color:var(--magenta-deep);}
+.cal-day.other-month{opacity:0.35;}
+.cal-day.today{border:2px solid var(--magenta-deep);}
+.cal-day-num{font-family:'IBM Plex Mono';font-size:11px;color:var(--ink-dim);}
+.cal-dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:4px;}
+.cal-event-chip{font-size:9.5px;font-family:'IBM Plex Mono';padding:1px 5px;border-radius:999px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .item-card{background:var(--paper-raised);border:2px solid var(--ink);border-radius:var(--radius);padding:15px;cursor:pointer;position:relative;}
 .item-card:hover{box-shadow:3px 3px 0 var(--magenta);}
 .item-title{font-weight:600;font-size:14px;}
@@ -206,6 +218,7 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
       <button class="nav-item" data-view="materials">Application Materials</button>
       <button class="nav-item" data-view="sources">Contacts</button>
       <button class="nav-item" data-view="notebook">Notebook</button>
+      <button class="nav-item" data-view="calendar">Calendar</button>
       <div class="nav-badge" id="inboxNavBadge">📥 <span id="inboxCount">0</span> new from newsletters</div>
     </div>
     <div class="sidebar-foot">Synced via Firebase.<br>Newsletters land in your inbox for review, never auto-posted.<br><button class="btn logout" id="logoutBtn" style="margin-top:6px;padding:0;">Log out</button></div>
@@ -307,6 +320,37 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
     <div class="view" id="view-notebook">
       <div class="page-head"><svg class="cute-sparkle" width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2 L14.2 9.8 L22 12 L14.2 14.2 L12 22 L9.8 14.2 L2 12 L9.8 9.8 Z" fill="currentColor"/></svg><div><div class="page-title">Notebook</div><div class="page-tag">loose ideas before they're anything else</div></div><button class="btn" id="addNoteBtn">+ New entry</button></div>
       <div id="notebookWrap" class="grid"></div>
+    </div>
+
+    <!-- CALENDAR -->
+    <div class="view" id="view-calendar">
+      <div class="page-head"><svg class="cute-sparkle" width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2 L14.2 9.8 L22 12 L14.2 14.2 L12 22 L9.8 14.2 L2 12 L9.8 9.8 Z" fill="currentColor"/></svg><div><div class="page-title">Calendar</div><div class="page-tag">everything with a date attached</div></div><button class="btn" id="addEventBtn">+ New event</button></div>
+
+      <div class="toolbar">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <button class="btn ghost small" id="calPrevBtn">‹</button>
+          <div id="calMonthLabel" style="font-family:'Anton',sans-serif;font-size:18px;letter-spacing:-0.5px;min-width:170px;text-align:center;"></div>
+          <button class="btn ghost small" id="calNextBtn">›</button>
+          <button class="btn small" id="calTodayBtn">Today</button>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;font-family:'IBM Plex Mono';font-size:10px;color:var(--ink-dim);align-items:center;">
+          <span><span class="cal-dot" style="background:var(--dustyblue);"></span> Appointment</span>
+          <span><span class="cal-dot" style="background:var(--olive);"></span> Meeting</span>
+          <span><span class="cal-dot" style="background:var(--magenta);"></span> Event</span>
+          <span><span class="cal-dot" style="background:var(--brick);"></span> Deadline</span>
+          <span><span class="cal-dot" style="background:var(--mustard);"></span> Long-term</span>
+        </div>
+      </div>
+
+      <div class="cal-grid" id="calGridHead">
+        <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
+
+      <div style="margin-top:26px;">
+        <label style="display:block;font-family:'IBM Plex Mono';font-size:10px;letter-spacing:0.5px;text-transform:uppercase;color:var(--ink-dim);margin-bottom:8px;">Upcoming</label>
+        <div id="upcomingList" class="linked-list"></div>
+      </div>
     </div>
 
   </div>
@@ -547,6 +591,42 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
   </div>
 </div>
 
+<!-- DAY VIEW MODAL (read-only) -->
+<div class="overlay" id="dayViewOverlay">
+  <div class="modal">
+    <button class="close" data-close="dayViewOverlay">&times;</button>
+    <h2 id="dv_date" style="margin-bottom:14px;"></h2>
+    <div id="dv_list" class="linked-list"></div>
+    <div class="modal-actions" style="justify-content:flex-end;">
+      <button class="btn" id="dvAddBtn">+ Add event on this day</button>
+    </div>
+  </div>
+</div>
+
+<!-- EVENT MODAL -->
+<div class="overlay" id="eventOverlay">
+  <div class="modal">
+    <button class="close" data-close="eventOverlay">&times;</button>
+    <h2 id="eventModalTitle">New event</h2>
+    <input type="hidden" id="e_id">
+    <div class="field-row">
+      <div class="field"><label>Title</label><input id="e_title"></div>
+      <div class="field"><label>Type</label><select id="e_type">
+        <option value="appointment">Appointment</option><option value="meeting">Meeting</option><option value="event">Event</option><option value="deadline">Deadline</option><option value="longterm">Long-term</option>
+      </select></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label id="e_date_label">Date</label><input type="date" id="e_date"></div>
+      <div class="field" id="e_endDateWrap" style="display:none;"><label>Through</label><input type="date" id="e_endDate"></div>
+      <div class="field" id="e_timeWrap"><label>Time</label><input type="time" id="e_time"></div>
+    </div>
+    <div class="field"><label>Linked application</label><select id="e_app"><option value="">— none —</option></select></div>
+    <div class="field"><label>Location</label><input id="e_location"></div>
+    <div class="field"><label>Notes</label><textarea id="e_notes"></textarea></div>
+    <div class="modal-actions"><button class="btn ghost" id="deleteEventBtn" style="display:none;">Delete</button><button class="btn" id="saveEventBtn">Save event</button></div>
+  </div>
+</div>
+
 <!-- NOTE MODAL -->
 <div class="overlay" id="noteOverlay">
   <div class="modal">
@@ -595,10 +675,17 @@ const db = firebase.firestore();
    (see SETUP.md for exact policy SQL) */
 const SUPABASE_URL = "https://ukapfgdzbgkcxlxikmhi.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_47fNipS43Sv58nOeRddQ8g_ikMGPZ2r";
-const supabase = (SUPABASE_URL !== "PASTE_ME") ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+let supabase = null;
+try{
+  if(SUPABASE_URL !== "PASTE_ME" && window.supabase && window.supabase.createClient){
+    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  }
+}catch(e){
+  console.error('Supabase init failed — PDF uploads will be unavailable, but the rest of the app is unaffected.', e);
+}
 
 let uid = null;
-let DB = {apps:[], materials:[], contacts:[], notes:[], companies:[], radar:[]};
+let DB = {apps:[], materials:[], contacts:[], notes:[], companies:[], radar:[], events:[]};
 let inboxItems = [];
 let settings = {apiKey:''};
 let unsubs = [];
@@ -638,12 +725,14 @@ function attachListeners(){
     DB.apps = snap.docs.map(d=>({id:d.id, ...d.data()}));
     renderDesk();
     renderMaterials();
+    renderCalendar();
   }));
   unsubs.push(col('materials').onSnapshot(snap=>{ DB.materials = snap.docs.map(d=>({id:d.id, ...d.data()})); renderMaterials(); }));
   unsubs.push(col('contacts').onSnapshot(snap=>{ DB.contacts = snap.docs.map(d=>({id:d.id, ...d.data()})); renderContacts(); }));
   unsubs.push(col('companies').onSnapshot(snap=>{ DB.companies = snap.docs.map(d=>({id:d.id, ...d.data()})); renderCompanies(); }));
   unsubs.push(col('notes').onSnapshot(snap=>{ DB.notes = snap.docs.map(d=>({id:d.id, ...d.data()})); renderNotebook(); }));
   unsubs.push(col('radar').onSnapshot(snap=>{ DB.radar = snap.docs.map(d=>({id:d.id, ...d.data()})); renderRadar(); }));
+  unsubs.push(col('events').onSnapshot(snap=>{ DB.events = snap.docs.map(d=>({id:d.id, ...d.data()})); renderCalendar(); }));
   unsubs.push(db.collection('users').doc(uid).collection('settings').doc('main').onSnapshot(doc=>{
     settings = doc.exists ? doc.data() : {apiKey:''};
   }));
@@ -1594,6 +1683,150 @@ document.getElementById('radarCaptureBtn').addEventListener('click', async ()=>{
     hint.textContent = "Couldn't parse that — add it manually below.";
     console.error(e);
   }
+});
+
+/* ---------------- CALENDAR ---------------- */
+const EVENT_TYPE_COLORS = {appointment:'var(--dustyblue)', meeting:'var(--olive)', event:'var(--magenta)', deadline:'var(--brick)', longterm:'var(--mustard)'};
+const EVENT_TYPE_COLORS_HEX = {appointment:'#5E8CA3', meeting:'#767A3D', event:'#D6236A', deadline:'#B23A2E', longterm:'#E8AE33'};
+let calMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+function dstr(d){ return d.toISOString? d.toISOString().slice(0,10) : d; }
+function pad2(n){ return n<10? '0'+n : ''+n; }
+function ymd(y,m,d){ return `${y}-${pad2(m+1)}-${pad2(d)}`; }
+
+function eventsOnDate(dateStr){
+  const items = [];
+  DB.events.forEach(e=>{
+    if(e.type==='longterm' && e.endDate){
+      if(dateStr>=e.date && dateStr<=e.endDate) items.push({...e, virtual:false});
+    } else if(e.date===dateStr){
+      items.push({...e, virtual:false});
+    }
+  });
+  DB.apps.forEach(a=>{
+    if(a.deadline===dateStr){
+      items.push({id:'app-'+a.id, title:`Deadline: ${a.role} @ ${a.company}`, type:'deadline', date:dateStr, linkedAppId:a.id, virtual:true});
+    }
+  });
+  return items;
+}
+function renderCalendar(){
+  const grid = document.getElementById('calGrid');
+  if(!grid) return;
+  const year = calMonth.getFullYear(), month = calMonth.getMonth();
+  document.getElementById('calMonthLabel').textContent = calMonth.toLocaleDateString('en-US', {month:'long', year:'numeric'});
+  const firstDow = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month+1, 0).getDate();
+  const daysInPrevMonth = new Date(year, month, 0).getDate();
+  const todayStr = dstr(new Date());
+  let cells = [];
+  for(let i=firstDow-1;i>=0;i--) cells.push({day: daysInPrevMonth-i, other:true, dateStr: ymd(month===0?year-1:year, month===0?11:month-1, daysInPrevMonth-i)});
+  for(let d=1;d<=daysInMonth;d++) cells.push({day:d, other:false, dateStr: ymd(year,month,d)});
+  while(cells.length%7!==0 || cells.length<35) cells.push({day: cells.length-(firstDow+daysInMonth)+1, other:true, dateStr: ymd(month===11?year+1:year, month===11?0:month+1, cells.length-(firstDow+daysInMonth)+1)});
+  grid.innerHTML = cells.map(c=>{
+    const evs = eventsOnDate(c.dateStr);
+    const chips = evs.slice(0,3).map(e=>`<div class="cal-event-chip" style="background:${EVENT_TYPE_COLORS[e.type]||'var(--ink-dim)'}">${esc(e.title)}</div>`).join('');
+    const more = evs.length>3? `<div style="font-size:9px;color:var(--ink-dim);">+${evs.length-3} more</div>` : '';
+    return `<div class="cal-day ${c.other?'other-month':''} ${c.dateStr===todayStr?'today':''}" data-date="${c.dateStr}">
+      <div class="cal-day-num">${c.day}</div>${chips}${more}
+    </div>`;
+  }).join('');
+  grid.querySelectorAll('.cal-day').forEach(el=>el.addEventListener('click', ()=>openDayView(el.dataset.date)));
+  renderUpcoming();
+}
+function renderUpcoming(){
+  const wrap = document.getElementById('upcomingList');
+  if(!wrap) return;
+  const todayStr = dstr(new Date());
+  const all = [];
+  DB.events.forEach(e=>{ if(e.date>=todayStr || (e.endDate && e.endDate>=todayStr)) all.push({...e, virtual:false}); });
+  DB.apps.forEach(a=>{ if(a.deadline && a.deadline>=todayStr) all.push({id:'app-'+a.id, title:`Deadline: ${a.role} @ ${a.company}`, type:'deadline', date:a.deadline, linkedAppId:a.id, virtual:true}); });
+  all.sort((x,y)=>x.date.localeCompare(y.date));
+  const upcoming = all.slice(0,10);
+  wrap.innerHTML = upcoming.length? upcoming.map(e=>`
+    <div class="linked-row" data-ev-id="${e.id}" data-ev-virtual="${e.virtual}" style="cursor:pointer;">
+      <span><span class="cal-dot" style="background:${EVENT_TYPE_COLORS[e.type]||'var(--ink-dim)'}"></span>${esc(e.title)}</span>
+      <span class="tag">${e.date}${e.endDate? ' → '+e.endDate:''}</span>
+    </div>`).join('') : `<div style="font-size:12px;color:var(--ink-dim);">Nothing coming up.</div>`;
+  wrap.querySelectorAll('[data-ev-id]').forEach(el=>el.addEventListener('click', ()=>{
+    if(el.dataset.evVirtual==='true') openAppView(el.dataset.evId.replace('app-',''));
+    else openEventModal(el.dataset.evId);
+  }));
+}
+let currentDayViewDate = null;
+function openDayView(dateStr){
+  currentDayViewDate = dateStr;
+  const evs = eventsOnDate(dateStr);
+  document.getElementById('dv_date').textContent = new Date(dateStr+'T00:00:00').toLocaleDateString('en-US', {weekday:'long', month:'long', day:'numeric', year:'numeric'});
+  document.getElementById('dv_list').innerHTML = evs.length? evs.map(e=>`
+    <div class="linked-row" data-ev-id="${e.id}" data-ev-virtual="${e.virtual}" style="cursor:pointer;">
+      <span><span class="cal-dot" style="background:${EVENT_TYPE_COLORS[e.type]||'var(--ink-dim)'}"></span>${esc(e.title)}</span>
+      <span class="tag">${e.type}</span>
+    </div>`).join('') : `<div style="font-size:12px;color:var(--ink-dim);">Nothing on this day yet.</div>`;
+  document.getElementById('dv_list').querySelectorAll('[data-ev-id]').forEach(el=>el.addEventListener('click', ()=>{
+    document.getElementById('dayViewOverlay').classList.remove('active');
+    if(el.dataset.evVirtual==='true') openAppView(el.dataset.evId.replace('app-',''));
+    else openEventModal(el.dataset.evId);
+  }));
+  document.getElementById('dayViewOverlay').classList.add('active');
+}
+document.getElementById('dvAddBtn').addEventListener('click', ()=>{
+  document.getElementById('dayViewOverlay').classList.remove('active');
+  openEventModal(null, currentDayViewDate);
+});
+document.getElementById('calPrevBtn').addEventListener('click', ()=>{ calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth()-1, 1); renderCalendar(); });
+document.getElementById('calNextBtn').addEventListener('click', ()=>{ calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth()+1, 1); renderCalendar(); });
+document.getElementById('calTodayBtn').addEventListener('click', ()=>{ calMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1); renderCalendar(); });
+
+function populateEventAppSelect(selectedId){
+  const el = document.getElementById('e_app');
+  el.innerHTML = '<option value="">— none —</option>' + DB.apps.map(a=>`<option value="${a.id}">${esc(a.role)} @ ${esc(a.company)}</option>`).join('');
+  el.value = selectedId||'';
+}
+document.getElementById('e_type').addEventListener('change', (e)=>{
+  document.getElementById('e_endDateWrap').style.display = e.target.value==='longterm'? 'block':'none';
+  document.getElementById('e_date_label').textContent = e.target.value==='longterm'? 'From' : 'Date';
+});
+function openEventModal(id, prefillDate){
+  const isEdit = !!id;
+  document.getElementById('eventModalTitle').textContent = isEdit?'Edit event':'New event';
+  document.getElementById('deleteEventBtn').style.display = isEdit?'inline-flex':'none';
+  const ev = isEdit? DB.events.find(x=>x.id===id) : {date: prefillDate||dstr(new Date())};
+  document.getElementById('e_id').value = id||'';
+  document.getElementById('e_title').value = ev.title||'';
+  document.getElementById('e_type').value = ev.type||'appointment';
+  document.getElementById('e_date').value = ev.date||'';
+  document.getElementById('e_endDate').value = ev.endDate||'';
+  document.getElementById('e_time').value = ev.time||'';
+  document.getElementById('e_location').value = ev.location||'';
+  document.getElementById('e_notes').value = ev.notes||'';
+  populateEventAppSelect(ev.linkedAppId);
+  document.getElementById('e_endDateWrap').style.display = (ev.type==='longterm')? 'block':'none';
+  document.getElementById('e_date_label').textContent = (ev.type==='longterm')? 'From' : 'Date';
+  document.getElementById('eventOverlay').classList.add('active');
+}
+document.getElementById('addEventBtn').addEventListener('click', ()=>openEventModal(null));
+document.getElementById('saveEventBtn').addEventListener('click', async ()=>{
+  const id = document.getElementById('e_id').value;
+  const data = {
+    title: document.getElementById('e_title').value.trim(),
+    type: document.getElementById('e_type').value,
+    date: document.getElementById('e_date').value,
+    endDate: document.getElementById('e_type').value==='longterm'? document.getElementById('e_endDate').value : '',
+    time: document.getElementById('e_time').value,
+    linkedAppId: document.getElementById('e_app').value,
+    location: document.getElementById('e_location').value.trim(),
+    notes: document.getElementById('e_notes').value.trim(),
+    updatedAt: Date.now()
+  };
+  if(!data.title || !data.date){ alert('Give it a title and a date.'); return; }
+  const col = db.collection('users').doc(uid).collection('events');
+  if(id) await col.doc(id).update(data); else await col.add({...data, createdAt: Date.now()});
+  document.getElementById('eventOverlay').classList.remove('active');
+});
+document.getElementById('deleteEventBtn').addEventListener('click', async ()=>{
+  const id = document.getElementById('e_id').value;
+  await db.collection('users').doc(uid).collection('events').doc(id).delete();
+  document.getElementById('eventOverlay').classList.remove('active');
 });
 
 /* ---------------- SETTINGS ---------------- */
