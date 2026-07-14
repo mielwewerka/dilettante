@@ -43,6 +43,9 @@
   --turquoise:#1FAFA8;
   --babypink:#EFA0BC;
   --deepblue-translucent: rgba(30, 41, 120, 0.78);
+  --task-work:#5E8CA3;
+  --task-personal:#D6236A;
+  --task-other:#767A3D;
 }
 *{box-sizing:border-box;}
 body{margin:0;background:var(--paper);color:var(--ink);font-family:'Space Grotesk',sans-serif;min-height:100vh;}
@@ -102,6 +105,7 @@ button{font-family:inherit;cursor:pointer;}
 .toggle-group button{background:var(--paper-raised);border:none;padding:7px 16px;font-size:11.5px;font-family:'IBM Plex Mono';text-transform:uppercase;}
 .toggle-group button.on{background:var(--ink);color:var(--paper);}
 .sort-select{border:1px solid var(--ink);border-radius:var(--radius);padding:7px 10px;font-family:'IBM Plex Mono';font-size:11px;background:var(--paper-raised);color:var(--ink);}
+.archive-toggle{display:flex;align-items:center;gap:6px;font-family:'IBM Plex Mono';font-size:11px;color:var(--ink-dim);cursor:pointer;}
 .btn{background:var(--ink);color:var(--paper);border:2px solid var(--ink);border-radius:var(--radius);padding:9px 16px;font-size:13px;font-weight:600;font-family:'Space Grotesk';display:inline-flex;align-items:center;gap:6px;}
 .btn:hover{background:var(--magenta-deep);border-color:var(--magenta-deep);}
 .btn.ghost{background:var(--paper-raised);color:var(--brick);border-color:var(--brick);}
@@ -191,6 +195,25 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
 .linked-row{display:flex;justify-content:space-between;align-items:center;background:var(--paper);padding:7px 10px;border-radius:8px;border:1px solid var(--ink);font-size:12px;}
 
 .badge{display:inline-flex;flex-shrink:0;}
+
+/* ---------- DOJO (home) ---------- */
+.dojo-head{border:2px solid var(--ink);border-radius:var(--radius);padding:28px 26px;margin-bottom:22px;background-color:var(--paper-raised);}
+.dojo-greeting{font-family:'Anton',sans-serif;font-size:36px;letter-spacing:-0.4px;line-height:1;}
+.dojo-date{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-dim);text-transform:uppercase;letter-spacing:1px;margin-top:6px;}
+.dojo-grid{display:grid;grid-template-columns:1.1fr 0.9fr;gap:18px;align-items:start;}
+@media (max-width: 900px){.dojo-grid{grid-template-columns:1fr;}}
+.dojo-col{display:flex;flex-direction:column;gap:16px;}
+.dojo-card{background:var(--paper-raised);border:2px solid var(--ink);border-radius:var(--radius);padding:16px 18px;}
+.dojo-card-label{display:block;font-family:'IBM Plex Mono';font-size:10px;letter-spacing:0.5px;text-transform:uppercase;color:var(--ink-dim);margin-bottom:8px;}
+.dojo-quote-card{background:#F1E9F6;border:2px solid var(--ink);border-radius:var(--radius);padding:26px 24px;position:relative;overflow:hidden;}
+.dojo-moon{position:absolute;top:16px;right:18px;}
+.dojo-quote-mark{font-family:'Anton',sans-serif;font-size:52px;color:#B8A6D9;line-height:0.5;margin-bottom:4px;}
+.dojo-quote-text{font-family:'Space Grotesk',sans-serif;font-style:italic;font-size:16px;line-height:1.5;color:var(--ink);}
+.dojo-quote-author{font-family:'IBM Plex Mono';font-size:10.5px;color:var(--ink-dim);margin-top:10px;text-transform:uppercase;letter-spacing:0.5px;}
+
+/* ---------- OASIS ---------- */
+.oasis-pic{width:100%;height:150px;object-fit:cover;border-radius:8px;margin-bottom:10px;display:block;background:var(--paper);}
+.oasis-icon-block{width:100%;height:80px;border-radius:8px;margin-bottom:10px;display:flex;align-items:center;justify-content:center;font-size:28px;}
 </style>
 </head>
 <body>
@@ -213,16 +236,19 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
   <div class="sidebar">
     <div class="brand-block">
       <div class="brand">DILETTANTE</div>
-      <div class="brand-sub">the assignment desk</div>
+      <div class="brand-sub">channel 12</div>
     </div>
     <div class="nav">
-      <button class="nav-item active" data-view="desk">The Desk</button>
+      <button class="nav-item active" data-view="dojo">The Dojo</button>
+      <button class="nav-item" data-view="desk">Opportunities</button>
       <button class="nav-item" data-view="radar">Radar</button>
       <button class="nav-item" data-view="companies">Companies</button>
       <button class="nav-item" data-view="materials">Application Materials</button>
       <button class="nav-item" data-view="sources">Contacts</button>
+      <button class="nav-item" data-view="todo">To-Do</button>
       <button class="nav-item" data-view="notebook">Notebook</button>
       <button class="nav-item" data-view="calendar">Calendar</button>
+      <button class="nav-item" data-view="oasis">Oasis</button>
       <div class="nav-badge" id="inboxNavBadge">📥 <span id="inboxCount">0</span> new from newsletters</div>
     </div>
     <div class="sidebar-foot">Synced via Firebase.<br>Newsletters land in your inbox for review, never auto-posted.<br><button class="btn logout" id="logoutBtn" style="margin-top:6px;padding:0;">Log out</button></div>
@@ -231,8 +257,62 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
   <div class="main">
 
     <!-- DESK -->
-    <div class="view active" id="view-desk">
-      <div class="page-head"><svg class="cute-sparkle" width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2 L14.2 9.8 L22 12 L14.2 14.2 L12 22 L9.8 14.2 L2 12 L9.8 9.8 Z" fill="currentColor"/></svg><div><div class="page-title">The Desk</div></div></div>
+    <!-- DOJO (home) -->
+    <div class="view active" id="view-dojo">
+      <div class="dojo-head dots">
+        <div class="dojo-greeting" id="dojoGreeting"></div>
+        <div class="dojo-date" id="dojoDate"></div>
+      </div>
+      <div class="dojo-grid">
+        <div class="dojo-col">
+          <div class="dojo-card">
+            <label class="dojo-card-label">Today on the calendar</label>
+            <div id="dojoCalendarList" class="linked-list"></div>
+          </div>
+          <div class="dojo-card">
+            <label class="dojo-card-label">Today's tasks</label>
+            <div id="dojoTasksList" class="linked-list"></div>
+          </div>
+        </div>
+        <div class="dojo-col">
+          <div class="dojo-quote-card">
+            <svg class="dojo-moon" width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M20 4 C12 4, 6 10, 6 18 C6 26, 12 30, 18 29 C11 26, 8 20, 11 13 C13 8, 17 5, 20 4 Z" fill="#B8A6D9"/>
+              <circle cx="24" cy="8" r="1.4" fill="#D9C9EE"/>
+              <circle cx="26" cy="14" r="0.9" fill="#D9C9EE"/>
+            </svg>
+            <div class="dojo-quote-mark">"</div>
+            <div class="dojo-quote-text" id="dojoQuoteText">Add your first quote to see it here.</div>
+            <div class="dojo-quote-author" id="dojoQuoteAuthor"></div>
+            <div style="display:flex;gap:8px;margin-top:16px;">
+              <button class="btn small" id="dojoShuffleBtn">Shuffle</button>
+              <button class="btn ghost small" id="dojoManageQuotesBtn">Manage quotes</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="view" id="view-desk">
+      <div class="page-head"><svg class="cute-sparkle" width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2 L14.2 9.8 L22 12 L14.2 14.2 L12 22 L9.8 14.2 L2 12 L9.8 9.8 Z" fill="currentColor"/></svg><div><div class="page-title">The Desk</div></div>
+        <svg width="52" height="60" viewBox="0 0 52 60" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;">
+          <path d="M40 46 C 50 44, 50 30, 40 26" fill="none" stroke="#4A3B2E" stroke-width="5" stroke-linecap="round"/>
+          <path d="M10 58 C 6 40, 10 24, 24 22 C 38 24, 40 40, 38 58 Z" fill="#EDE0C0"/>
+          <ellipse cx="16" cy="56" rx="4" ry="6" fill="#4A3B2E"/>
+          <ellipse cx="30" cy="56" rx="4" ry="6" fill="#4A3B2E"/>
+          <circle cx="24" cy="16" r="11" fill="#EDE0C0"/>
+          <path d="M15 10 L12 1 L20 8 Z" fill="#4A3B2E"/>
+          <path d="M33 10 L36 1 L28 8 Z" fill="#4A3B2E"/>
+          <path d="M17 18 C 17 24, 31 24, 31 18 C 31 14, 17 14, 17 18 Z" fill="#5C4A3A" opacity="0.5"/>
+          <ellipse cx="19" cy="15" rx="2" ry="2.6" fill="#6FA8C7"/>
+          <ellipse cx="29" cy="15" rx="2" ry="2.6" fill="#6FA8C7"/>
+          <path d="M23 18 L25 18 L24 19.5 Z" fill="#4A3B2E"/>
+          <line x1="14" y1="18" x2="4" y2="16" stroke="#4A3B2E" stroke-width="0.7"/>
+          <line x1="14" y1="20" x2="4" y2="21" stroke="#4A3B2E" stroke-width="0.7"/>
+          <line x1="34" y1="18" x2="44" y2="16" stroke="#4A3B2E" stroke-width="0.7"/>
+          <line x1="34" y1="20" x2="44" y2="21" stroke="#4A3B2E" stroke-width="0.7"/>
+        </svg>
+      </div>
 
       <div class="inbox-banner" id="inboxBanner">
         <span id="inboxBannerText">0 new from your newsletters</span>
@@ -253,6 +333,7 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
           <div class="toggle-group"><button id="btnBoard" class="on">Board</button><button id="btnList">List</button><button id="btnPages">Pages</button></div>
           <select id="deskSortSelect" class="sort-select"><option value="alpha">Sort: A–Z</option><option value="created">Sort: Date added</option><option value="updated">Sort: Last edited</option></select>
+          <label class="archive-toggle"><input type="checkbox" id="deskArchiveToggle"> Show archived</label>
         </div>
         <button class="btn" id="addAppBtn">+ New application</button>
       </div>
@@ -291,6 +372,7 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
       </div>
       <div class="toolbar" style="margin-top:-6px;">
         <select id="radarSortSelect" class="sort-select"><option value="alpha">Sort: A–Z</option><option value="created">Sort: Date added</option><option value="updated">Sort: Last edited</option></select>
+        <label class="archive-toggle"><input type="checkbox" id="radarArchiveToggle"> Show archived</label>
       </div>
       <div id="radarWrap" class="grid"></div>
     </div>
@@ -304,6 +386,7 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
           <button class="co-tab" data-tab="contacted">Contacted</button>
         </div>
         <select id="companiesSortSelect" class="sort-select"><option value="alpha">Sort: A–Z</option><option value="created">Sort: Date added</option><option value="updated">Sort: Last edited</option></select>
+        <label class="archive-toggle"><input type="checkbox" id="companiesArchiveToggle"> Show archived</label>
       </div>
       <div id="companiesWrap" class="grid"></div>
     </div>
@@ -326,8 +409,42 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
       <div class="page-head"><svg class="cute-sparkle" width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2 L14.2 9.8 L22 12 L14.2 14.2 L12 22 L9.8 14.2 L2 12 L9.8 9.8 Z" fill="currentColor"/></svg><div><div class="page-title">Contacts</div><div class="page-tag">editors, referrals, and settings</div></div><div style="display:flex;gap:8px;"><button class="btn ghost" id="settingsBtn">Settings</button><button class="btn" id="addContactBtn">+ New contact</button></div></div>
       <div class="toolbar" style="margin-top:0;">
         <select id="contactsSortSelect" class="sort-select"><option value="alpha">Sort: A–Z</option><option value="created">Sort: Date added</option><option value="updated">Sort: Last edited</option></select>
+        <label class="archive-toggle"><input type="checkbox" id="contactsArchiveToggle"> Show archived</label>
       </div>
       <div id="contactsWrap" class="grid"></div>
+    </div>
+
+    <!-- TO-DO -->
+    <div class="view" id="view-todo">
+      <div class="page-head"><svg class="cute-sparkle" width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2 L14.2 9.8 L22 12 L14.2 14.2 L12 22 L9.8 14.2 L2 12 L9.8 9.8 Z" fill="currentColor"/></svg><div><div class="page-title">To-Do</div><div class="page-tag">work, personal, other</div></div><button class="btn" id="addTaskBtn">+ New task</button></div>
+
+      <div class="toolbar">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div class="toggle-group"><button id="todoBtnDay" class="on">Day</button><button id="todoBtnWeek">Week</button><button id="todoBtnMonth">Month</button></div>
+          <button class="btn ghost small" id="todoPrevBtn">‹</button>
+          <div id="todoPeriodLabel" style="font-family:'Anton',sans-serif;font-size:16px;letter-spacing:-0.3px;min-width:170px;text-align:center;"></div>
+          <button class="btn ghost small" id="todoNextBtn">›</button>
+          <button class="btn small" id="todoTodayBtn">Today</button>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;font-family:'IBM Plex Mono';font-size:10px;color:var(--ink-dim);align-items:center;">
+          <span><span class="cal-dot" style="background:var(--task-work);"></span> Work</span>
+          <span><span class="cal-dot" style="background:var(--task-personal);"></span> Personal</span>
+          <span><span class="cal-dot" style="background:var(--task-other);"></span> Other</span>
+        </div>
+      </div>
+
+      <div style="background:var(--paper-raised);border:2px solid var(--ink);border-radius:var(--radius);padding:16px 18px;margin-bottom:20px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <label style="font-family:'IBM Plex Mono';font-size:10px;letter-spacing:0.5px;text-transform:uppercase;color:var(--ink-dim);">Goals for this <span id="todoGoalScope"></span></label>
+        </div>
+        <div id="goalsList" class="linked-list" style="margin-bottom:10px;"></div>
+        <div style="display:flex;gap:8px;">
+          <input id="goalInput" placeholder="e.g. Send three pitches this week" style="flex:1;border:1px solid var(--ink);border-radius:8px;padding:8px 10px;font-family:'Space Grotesk';font-size:13px;">
+          <button class="btn small" id="addGoalBtn">+ Add goal</button>
+        </div>
+      </div>
+
+      <div id="tasksList" class="linked-list"></div>
     </div>
 
     <!-- NOTEBOOK -->
@@ -353,6 +470,7 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
           <span><span class="cal-dot" style="background:var(--magenta);"></span> Event</span>
           <span><span class="cal-dot" style="background:var(--brick);"></span> Deadline</span>
           <span><span class="cal-dot" style="background:var(--mustard);"></span> Long-term</span>
+          <span><span class="cal-dot" style="background:var(--task-work);"></span> Work</span>
           <span style="color:var(--ink-dim);">+ your own custom categories</span>
         </div>
       </div>
@@ -366,6 +484,20 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
         <label style="display:block;font-family:'IBM Plex Mono';font-size:10px;letter-spacing:0.5px;text-transform:uppercase;color:var(--ink-dim);margin-bottom:8px;">Upcoming</label>
         <div id="upcomingList" class="linked-list"></div>
       </div>
+    </div>
+
+    <!-- OASIS -->
+    <div class="view" id="view-oasis">
+      <div class="page-head"><svg class="cute-sparkle" width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2 L14.2 9.8 L22 12 L14.2 14.2 L12 22 L9.8 14.2 L2 12 L9.8 9.8 Z" fill="currentColor"/></svg><div><div class="page-title">Oasis</div><div class="page-tag">pictures, sites, songs — whatever's a nice place to land</div></div><button class="btn" id="addOasisBtn">+ New item</button></div>
+      <div class="toolbar" style="margin-top:0;">
+        <div class="toggle-group">
+          <button class="oasis-tab on" data-tab="all">All</button>
+          <button class="oasis-tab" data-tab="image">Pictures</button>
+          <button class="oasis-tab" data-tab="link">Sites</button>
+          <button class="oasis-tab" data-tab="song">Songs</button>
+        </div>
+      </div>
+      <div id="oasisWrap" class="grid"></div>
     </div>
 
   </div>
@@ -386,7 +518,10 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
     <div id="view_materials"></div>
     <div class="modal-actions">
       <button class="btn ghost" id="viewDeleteBtn">Delete</button>
-      <button class="btn" id="viewEditBtn">Edit</button>
+      <div style="display:flex;gap:8px;">
+        <button class="btn ghost" id="viewArchiveBtn">Archive</button>
+        <button class="btn" id="viewEditBtn">Edit</button>
+      </div>
     </div>
   </div>
 </div>
@@ -480,7 +615,10 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
     <div id="co_view_materials"></div>
     <div class="modal-actions">
       <button class="btn ghost" id="coViewDeleteBtn">Delete</button>
-      <button class="btn" id="coViewEditBtn">Edit</button>
+      <div style="display:flex;gap:8px;">
+        <button class="btn ghost" id="coViewArchiveBtn">Archive</button>
+        <button class="btn" id="coViewEditBtn">Edit</button>
+      </div>
     </div>
   </div>
 </div>
@@ -533,7 +671,10 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
 
     <div class="modal-actions">
       <button class="btn ghost" id="cvDeleteBtn">Delete</button>
-      <button class="btn" id="cvEditBtn">Edit</button>
+      <div style="display:flex;gap:8px;">
+        <button class="btn ghost" id="cvArchiveBtn">Archive</button>
+        <button class="btn" id="cvEditBtn">Edit</button>
+      </div>
     </div>
   </div>
 </div>
@@ -579,6 +720,7 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
     <div class="modal-actions">
       <button class="btn ghost" id="rvDeleteBtn">Delete</button>
       <div style="display:flex;gap:8px;">
+        <button class="btn ghost" id="rvArchiveBtn">Archive</button>
         <button class="btn ghost" id="rvEditBtn">Edit</button>
         <button class="btn" id="rvMoveBtn">→ Move to The Desk</button>
       </div>
@@ -627,7 +769,7 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
     <div class="field-row">
       <div class="field"><label>Title</label><input id="e_title"></div>
       <div class="field"><label>Type</label><select id="e_type">
-        <option value="appointment">Appointment</option><option value="meeting">Meeting</option><option value="event">Event</option><option value="deadline">Deadline</option><option value="longterm">Long-term</option><option value="custom">Custom…</option>
+        <option value="appointment">Appointment</option><option value="meeting">Meeting</option><option value="event">Event</option><option value="deadline">Deadline</option><option value="longterm">Long-term</option><option value="work">Work</option><option value="custom">Custom…</option>
       </select></div>
     </div>
     <div class="field" id="e_customTypeWrap" style="display:none;"><label>Custom category name</label><input id="e_customType" placeholder="e.g. Family visit"></div>
@@ -643,6 +785,57 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
     <div class="field"><label>Location</label><input id="e_location"></div>
     <div class="field"><label>Notes</label><textarea id="e_notes"></textarea></div>
     <div class="modal-actions"><button class="btn ghost" id="deleteEventBtn" style="display:none;">Delete</button><button class="btn" id="saveEventBtn">Save event</button></div>
+  </div>
+</div>
+
+<!-- OASIS MODAL -->
+<div class="overlay" id="oasisOverlay">
+  <div class="modal">
+    <button class="close" data-close="oasisOverlay">&times;</button>
+    <h2 id="oasisModalTitle">New item</h2>
+    <input type="hidden" id="o_id">
+    <div class="field-row">
+      <div class="field"><label>Title</label><input id="o_title"></div>
+      <div class="field"><label>Type</label><select id="o_type">
+        <option value="image">Picture</option><option value="link">Website</option><option value="song">Song</option>
+      </select></div>
+    </div>
+    <div class="field" id="o_imageUrlWrap"><label>Image URL</label><input id="o_imageUrl" placeholder="https://... (a direct link to the image)"></div>
+    <div class="field"><label>Link <span style="text-transform:none;color:var(--ink-dim);">(optional — where it opens to)</span></label><input id="o_url" placeholder="https://"></div>
+    <div class="field"><label>Note</label><textarea id="o_note"></textarea></div>
+    <div class="modal-actions"><button class="btn ghost" id="deleteOasisBtn" style="display:none;">Delete</button><button class="btn" id="saveOasisBtn">Save item</button></div>
+  </div>
+</div>
+
+<!-- QUOTE MANAGER MODAL -->
+<div class="overlay" id="quoteOverlay">
+  <div class="modal">
+    <button class="close" data-close="quoteOverlay">&times;</button>
+    <h2>Manage quotes</h2>
+    <div class="field"><label>Quote text</label><textarea id="q_text" placeholder="Type or paste a quote you want to see"></textarea></div>
+    <div class="field"><label>Author (optional)</label><input id="q_author"></div>
+    <div class="modal-actions" style="justify-content:flex-end;"><button class="btn" id="addQuoteBtn">+ Add quote</button></div>
+    <div id="quoteManagerList" class="linked-list" style="margin-top:16px;"></div>
+  </div>
+</div>
+
+<!-- TASK MODAL -->
+<div class="overlay" id="taskOverlay">
+  <div class="modal">
+    <button class="close" data-close="taskOverlay">&times;</button>
+    <h2 id="taskModalTitle">New task</h2>
+    <input type="hidden" id="t_id">
+    <div class="field-row">
+      <div class="field"><label>Title</label><input id="t_title"></div>
+      <div class="field"><label>Category</label><select id="t_category">
+        <option value="work">Work</option><option value="personal">Personal</option><option value="other">Other</option>
+      </select></div>
+    </div>
+    <div class="field"><label>Date</label><input type="date" id="t_date"></div>
+    <div class="field"><label>Linked application</label><select id="t_app"><option value="">— none —</option></select></div>
+    <div class="field"><label>Linked contact</label><select id="t_contact"><option value="">— none —</option></select></div>
+    <div class="field"><label>Notes</label><textarea id="t_notes"></textarea></div>
+    <div class="modal-actions"><button class="btn ghost" id="deleteTaskBtn" style="display:none;">Delete</button><button class="btn" id="saveTaskBtn">Save task</button></div>
   </div>
 </div>
 
@@ -704,7 +897,7 @@ try{
 }
 
 let uid = null;
-let DB = {apps:[], materials:[], contacts:[], notes:[], companies:[], radar:[], events:[]};
+let DB = {apps:[], materials:[], contacts:[], notes:[], companies:[], radar:[], events:[], tasks:[], goals:[], quotes:[], oasis:[]};
 let inboxItems = [];
 let settings = {apiKey:''};
 let unsubs = [];
@@ -745,6 +938,7 @@ function attachListeners(){
     renderDesk();
     renderMaterials();
     renderCalendar();
+    renderDojo();
   }));
   unsubs.push(col('materials').onSnapshot(snap=>{ DB.materials = snap.docs.map(d=>({id:d.id, ...d.data()})); renderMaterials(); }));
   unsubs.push(col('contacts').onSnapshot(snap=>{ DB.contacts = snap.docs.map(d=>({id:d.id, ...d.data()})); renderContacts(); }));
@@ -752,6 +946,10 @@ function attachListeners(){
   unsubs.push(col('notes').onSnapshot(snap=>{ DB.notes = snap.docs.map(d=>({id:d.id, ...d.data()})); renderNotebook(); }));
   unsubs.push(col('radar').onSnapshot(snap=>{ DB.radar = snap.docs.map(d=>({id:d.id, ...d.data()})); renderRadar(); }));
   unsubs.push(col('events').onSnapshot(snap=>{ DB.events = snap.docs.map(d=>({id:d.id, ...d.data()})); renderCalendar(); }));
+  unsubs.push(col('tasks').onSnapshot(snap=>{ DB.tasks = snap.docs.map(d=>({id:d.id, ...d.data()})); renderTodo(); renderDojo(); }));
+  unsubs.push(col('goals').onSnapshot(snap=>{ DB.goals = snap.docs.map(d=>({id:d.id, ...d.data()})); renderTodo(); }));
+  unsubs.push(col('quotes').onSnapshot(snap=>{ DB.quotes = snap.docs.map(d=>({id:d.id, ...d.data()})); renderQuoteManager(); }));
+  unsubs.push(col('oasis').onSnapshot(snap=>{ DB.oasis = snap.docs.map(d=>({id:d.id, ...d.data()})); renderOasis(); }));
   unsubs.push(db.collection('users').doc(uid).collection('settings').doc('main').onSnapshot(doc=>{
     settings = doc.exists ? doc.data() : {apiKey:''};
   }));
@@ -808,6 +1006,7 @@ function applySort(items, mode, textKey){
 }
 let viewMode = 'board';
 let deskSort = 'alpha';
+let deskShowArchived = false;
 let stagePageTab = 0;
 function renderDesk(){
   const boardWrap = document.getElementById('boardWrap');
@@ -818,7 +1017,7 @@ function renderDesk(){
   pagesWrap.style.display = viewMode==='pages'? 'block':'none';
   if(viewMode==='board'){
     boardWrap.innerHTML = STAGES.map((s,idx)=>{
-      const items = applySort(DB.apps.filter(a=>a.stage==idx), deskSort, 'role');
+      const items = applySort(DB.apps.filter(a=>a.stage==idx && !!a.archived===deskShowArchived), deskSort, 'role');
       return `<div class="column">
         <div class="column-head" style="background:var(--deepblue-translucent)"><span class="badge">${dotBadge(idx,16)}</span><span class="column-title">${s}</span><span class="column-count">${items.length}</span></div>
         <div class="column-body" data-stage="${idx}">${items.map(cardHTML).join('')}</div>
@@ -827,8 +1026,8 @@ function renderDesk(){
     setupDragDrop();
     boardWrap.querySelectorAll('.card').forEach(c=>c.addEventListener('click',()=>openAppView(c.dataset.id)));
   } else if(viewMode==='list'){
-    if(DB.apps.length===0){ listWrap.innerHTML = `<div class="empty"><b>Nothing on the desk yet</b>Drop in a role you're eyeing, or paste one in above.</div>`; return; }
-    const sorted = applySort(DB.apps, deskSort, 'role');
+    const sorted = applySort(DB.apps.filter(a=>!!a.archived===deskShowArchived), deskSort, 'role');
+    if(sorted.length===0){ listWrap.innerHTML = `<div class="empty"><b>${deskShowArchived?'No archived applications':'Nothing on the desk yet'}</b>${deskShowArchived?'Nothing archived yet.':"Drop in a role you're eyeing, or paste one in above."}</div>`; return; }
     listWrap.innerHTML = `<table><tr><th>Role</th><th>Company</th><th>Stage</th><th>Deadline</th><th>Next action</th></tr>
       ${sorted.map(a=>`<tr class="row" data-id="${a.id}">
         <td>${esc(a.role)}</td><td>${esc(a.company)}</td>
@@ -842,6 +1041,7 @@ function renderDesk(){
   }
 }
 document.getElementById('deskSortSelect').addEventListener('change', (e)=>{ deskSort = e.target.value; renderDesk(); });
+document.getElementById('deskArchiveToggle').addEventListener('change', (e)=>{ deskShowArchived = e.target.checked; renderDesk(); });
 function renderStageTabBar(){
   const bar = document.getElementById('stageTabBar');
   bar.innerHTML = STAGES.map((s,idx)=>`<button data-stage-tab="${idx}" class="${idx===stagePageTab?'on':''}">${s}</button>`).join('');
@@ -853,7 +1053,7 @@ function renderStageTabBar(){
 }
 function renderPagesGrid(){
   const grid = document.getElementById('pagesGrid');
-  const items = applySort(DB.apps.filter(a=>a.stage==stagePageTab), deskSort, 'role');
+  const items = applySort(DB.apps.filter(a=>a.stage==stagePageTab && !!a.archived===deskShowArchived), deskSort, 'role');
   if(items.length===0){ grid.innerHTML = `<div class="empty"><b>Nothing in ${STAGES[stagePageTab]} yet</b>Drag a card here from the board, or add a new application at this stage.</div>`; return; }
   grid.innerHTML = items.map(a=>{
     const dleft = daysUntil(a.deadline);
@@ -922,6 +1122,7 @@ function openAppView(id){
   if(req.other) req.other.split(',').map(s=>s.trim()).filter(Boolean).forEach(s=>reqItems.push(s));
   document.getElementById('view_requirements').innerHTML = reqItems.length? `<label style="display:block;font-family:'IBM Plex Mono';font-size:10px;letter-spacing:0.5px;text-transform:uppercase;color:var(--ink-dim);margin:16px 0 6px;">Requires</label><div class="item-tags">${reqItems.map(i=>`<span class="tag">${esc(i)}</span>`).join('')}</div>` : '';
   renderViewMaterials(id);
+  document.getElementById('viewArchiveBtn').textContent = a.archived? 'Unarchive':'Archive';
   document.getElementById('appViewOverlay').classList.add('active');
   const gotoBtn = document.querySelector('[data-goto-company]');
   if(gotoBtn) gotoBtn.addEventListener('click', (e)=>{ e.preventDefault(); document.getElementById('appViewOverlay').classList.remove('active'); openCompanyView(gotoBtn.dataset.gotoCompany); });
@@ -946,6 +1147,11 @@ document.getElementById('viewEditBtn').addEventListener('click', ()=>{
 document.getElementById('viewDeleteBtn').addEventListener('click', async ()=>{
   if(!confirm('Delete this application?')) return;
   await db.collection('users').doc(uid).collection('applications').doc(currentViewAppId).delete();
+  document.getElementById('appViewOverlay').classList.remove('active');
+});
+document.getElementById('viewArchiveBtn').addEventListener('click', async ()=>{
+  const a = DB.apps.find(x=>x.id===currentViewAppId);
+  await db.collection('users').doc(uid).collection('applications').doc(currentViewAppId).update({archived: !(a&&a.archived)});
   document.getElementById('appViewOverlay').classList.remove('active');
 });
 
@@ -977,6 +1183,7 @@ function populateCompanySelect(elId, selectedId){
 
 let companiesTab = 'unsorted';
 let companiesSort = 'alpha';
+let companiesShowArchived = false;
 document.querySelectorAll('.co-tab').forEach(btn=>{
   btn.addEventListener('click', ()=>{
     document.querySelectorAll('.co-tab').forEach(b=>b.classList.remove('on'));
@@ -986,11 +1193,12 @@ document.querySelectorAll('.co-tab').forEach(btn=>{
   });
 });
 document.getElementById('companiesSortSelect').addEventListener('change', (e)=>{ companiesSort = e.target.value; renderCompanies(); });
+document.getElementById('companiesArchiveToggle').addEventListener('change', (e)=>{ companiesShowArchived = e.target.checked; renderCompanies(); });
 function renderCompanies(){
   const wrap = document.getElementById('companiesWrap');
   if(!wrap) return;
-  const items = applySort(DB.companies.filter(c=>(c.bank||'unsorted')===companiesTab), companiesSort, 'name');
-  if(items.length===0){ wrap.innerHTML = `<div class="empty"><b>Nothing here yet</b>Add a company to start tracking it.</div>`; return; }
+  const items = applySort(DB.companies.filter(c=>(c.bank||'unsorted')===companiesTab && !!c.archived===companiesShowArchived), companiesSort, 'name');
+  if(items.length===0){ wrap.innerHTML = `<div class="empty"><b>${companiesShowArchived?'No archived companies':'Nothing here yet'}</b>${companiesShowArchived?'Nothing archived yet.':'Add a company to start tracking it.'}</div>`; return; }
   wrap.innerHTML = items.map(co=>{
     const apps = appsForCompany(co), contacts = contactsForCompany(co);
     const initial = (co.name||'?').trim()[0]?.toUpperCase() || '?';
@@ -1031,6 +1239,7 @@ function openCompanyView(id){
     (mats.length? `<div class="linked-list">${mats.map(m=>`<div class="linked-row"><span>${esc(m.title||'(untitled)')}</span>${m.fileUrl? `<a href="${esc(m.fileUrl)}" target="_blank" rel="noopener">📄 ↗</a>` : `<span class="tag">${m.type}</span>`}</div>`).join('')}</div>` : `<div style="font-size:12px;color:var(--ink-dim);">None linked yet.</div>`) +
     `<button class="btn small" id="coAddMaterialBtn" style="margin-top:8px;">+ New material here</button>`;
 
+  document.getElementById('coViewArchiveBtn').textContent = co.archived? 'Unarchive':'Archive';
   document.getElementById('companyViewOverlay').classList.add('active');
 
   document.querySelectorAll('[data-goto-app]').forEach(el=>el.addEventListener('click', ()=>{ document.getElementById('companyViewOverlay').classList.remove('active'); openAppView(el.dataset.gotoApp); }));
@@ -1046,6 +1255,11 @@ document.getElementById('coViewEditBtn').addEventListener('click', ()=>{
 document.getElementById('coViewDeleteBtn').addEventListener('click', async ()=>{
   if(!confirm('Delete this company? Linked applications, contacts, and materials will stay, just unlinked.')) return;
   await db.collection('users').doc(uid).collection('companies').doc(currentViewCompanyId).delete();
+  document.getElementById('companyViewOverlay').classList.remove('active');
+});
+document.getElementById('coViewArchiveBtn').addEventListener('click', async ()=>{
+  const co = DB.companies.find(x=>x.id===currentViewCompanyId);
+  await db.collection('users').doc(uid).collection('companies').doc(currentViewCompanyId).update({archived: !(co&&co.archived)});
   document.getElementById('companyViewOverlay').classList.remove('active');
 });
 
@@ -1439,8 +1653,9 @@ document.getElementById('deleteMaterialBtn').addEventListener('click', async ()=
 /* ---------------- CONTACTS ---------------- */
 function renderContacts(){
   const wrap = document.getElementById('contactsWrap');
-  if(DB.contacts.length===0){ wrap.innerHTML = `<div class="empty"><b>Your contact book is empty</b>Add the people who got you in the door.</div>`; return; }
-  wrap.innerHTML = applySort(DB.contacts, contactsSort, 'name').map(c=>{
+  const visible = DB.contacts.filter(c=>!!c.archived===contactsShowArchived);
+  if(visible.length===0){ wrap.innerHTML = `<div class="empty"><b>${contactsShowArchived?'No archived contacts':'Your contact book is empty'}</b>${contactsShowArchived?'Nothing archived yet.':'Add the people who got you in the door.'}</div>`; return; }
+  wrap.innerHTML = applySort(visible, contactsSort, 'name').map(c=>{
     const apps = DB.apps.filter(a=>a.contactId===c.id);
     return `<div class="item-card" data-id="${c.id}">
       <div class="item-title">${esc(c.name)}</div><div class="item-sub">${esc(c.role||'')}${c.org? ' · '+esc(c.org):''}</div>${c.location? `<div class="item-sub">${esc(c.location)}</div>`:''}
@@ -1450,8 +1665,10 @@ function renderContacts(){
   wrap.querySelectorAll('.item-card').forEach(c=>c.addEventListener('click',()=>openContactView(c.dataset.id)));
 }
 document.getElementById('contactsSortSelect').addEventListener('change', (e)=>{ contactsSort = e.target.value; renderContacts(); });
+document.getElementById('contactsArchiveToggle').addEventListener('change', (e)=>{ contactsShowArchived = e.target.checked; renderContacts(); });
 let currentViewContactId = null;
 let contactsSort = 'alpha';
+let contactsShowArchived = false;
 function openContactView(id){
   const c = DB.contacts.find(x=>x.id===id);
   if(!c) return;
@@ -1472,6 +1689,7 @@ function openContactView(id){
   document.getElementById('cv_update_date').value = new Date().toISOString().slice(0,10);
   document.getElementById('cv_update_text').value = '';
   renderContactUpdates(c);
+  document.getElementById('cvArchiveBtn').textContent = c.archived? 'Unarchive':'Archive';
   document.getElementById('contactViewOverlay').classList.add('active');
   const gotoCoBtn = document.querySelector('[data-goto-co]');
   if(gotoCoBtn) gotoCoBtn.addEventListener('click', (e)=>{ e.preventDefault(); document.getElementById('contactViewOverlay').classList.remove('active'); openCompanyView(gotoCoBtn.dataset.gotoCo); });
@@ -1507,6 +1725,11 @@ document.getElementById('cvEditBtn').addEventListener('click', ()=>{
 document.getElementById('cvDeleteBtn').addEventListener('click', async ()=>{
   if(!confirm('Delete this contact?')) return;
   await db.collection('users').doc(uid).collection('contacts').doc(currentViewContactId).delete();
+  document.getElementById('contactViewOverlay').classList.remove('active');
+});
+document.getElementById('cvArchiveBtn').addEventListener('click', async ()=>{
+  const c = DB.contacts.find(x=>x.id===currentViewContactId);
+  await db.collection('users').doc(uid).collection('contacts').doc(currentViewContactId).update({archived: !(c&&c.archived)});
   document.getElementById('contactViewOverlay').classList.remove('active');
 });
 
@@ -1597,6 +1820,7 @@ document.getElementById('deleteNoteBtn').addEventListener('click', async ()=>{
 const RADAR_TYPE_LABELS = {job:'Job', fellowship:'Fellowship', grant:'Grant', fulbright:'Fulbright / Scholarship', gradschool:'Grad School', other:'Other'};
 let radarTab = 'all';
 let radarSort = 'alpha';
+let radarShowArchived = false;
 document.querySelectorAll('.radar-tab').forEach(btn=>{
   btn.addEventListener('click', ()=>{
     document.querySelectorAll('.radar-tab').forEach(b=>b.classList.remove('on'));
@@ -1608,8 +1832,9 @@ document.querySelectorAll('.radar-tab').forEach(btn=>{
 function renderRadar(){
   const wrap = document.getElementById('radarWrap');
   if(!wrap) return;
-  const items = radarTab==='all'? DB.radar : DB.radar.filter(r=>r.type===radarTab);
-  if(items.length===0){ wrap.innerHTML = `<div class="empty"><b>Nothing on the radar yet</b>Paste in a program or opportunity you want to remember for later.</div>`; return; }
+  const byTab = radarTab==='all'? DB.radar : DB.radar.filter(r=>r.type===radarTab);
+  const items = byTab.filter(r=>!!r.archived===radarShowArchived);
+  if(items.length===0){ wrap.innerHTML = `<div class="empty"><b>${radarShowArchived?'Nothing archived':'Nothing on the radar yet'}</b>${radarShowArchived?'Nothing archived yet.':'Paste in a program or opportunity you want to remember for later.'}</div>`; return; }
   wrap.innerHTML = applySort(items, radarSort, 'title').map(r=>`
     <div class="item-card" data-id="${r.id}">
       <div class="item-title">${esc(r.title)}</div>
@@ -1620,6 +1845,7 @@ function renderRadar(){
   wrap.querySelectorAll('.item-card').forEach(c=>c.addEventListener('click',()=>openRadarView(c.dataset.id)));
 }
 document.getElementById('radarSortSelect').addEventListener('change', (e)=>{ radarSort = e.target.value; renderRadar(); });
+document.getElementById('radarArchiveToggle').addEventListener('change', (e)=>{ radarShowArchived = e.target.checked; renderRadar(); });
 
 let currentViewRadarId = null;
 function openRadarView(id){
@@ -1634,6 +1860,7 @@ function openRadarView(id){
   const notesEl = document.getElementById('rv_notes');
   notesEl.textContent = r.notes||'';
   notesEl.style.display = r.notes? 'block':'none';
+  document.getElementById('rvArchiveBtn').textContent = r.archived? 'Unarchive':'Archive';
   document.getElementById('radarViewOverlay').classList.add('active');
 }
 document.getElementById('rvEditBtn').addEventListener('click', ()=>{
@@ -1643,6 +1870,11 @@ document.getElementById('rvEditBtn').addEventListener('click', ()=>{
 document.getElementById('rvDeleteBtn').addEventListener('click', async ()=>{
   if(!confirm('Remove this from the radar?')) return;
   await db.collection('users').doc(uid).collection('radar').doc(currentViewRadarId).delete();
+  document.getElementById('radarViewOverlay').classList.remove('active');
+});
+document.getElementById('rvArchiveBtn').addEventListener('click', async ()=>{
+  const r = DB.radar.find(x=>x.id===currentViewRadarId);
+  await db.collection('users').doc(uid).collection('radar').doc(currentViewRadarId).update({archived: !(r&&r.archived)});
   document.getElementById('radarViewOverlay').classList.remove('active');
 });
 document.getElementById('rvMoveBtn').addEventListener('click', ()=>{
@@ -1720,7 +1952,7 @@ document.getElementById('radarCaptureBtn').addEventListener('click', async ()=>{
 });
 
 /* ---------------- CALENDAR ---------------- */
-const EVENT_TYPE_COLORS = {appointment:'var(--dustyblue)', meeting:'var(--olive)', event:'var(--magenta)', deadline:'var(--brick)', longterm:'var(--mustard)'};
+const EVENT_TYPE_COLORS = {appointment:'var(--dustyblue)', meeting:'var(--olive)', event:'var(--magenta)', deadline:'var(--brick)', longterm:'var(--mustard)', work:'var(--task-work)'};
 const CUSTOM_TYPE_PALETTE = ['#423A6B','#5E8CA3','#767A3D','#D6236A','#B23A2E','#E8AE33','#8FB4C9'];
 function customTypeColor(name){
   let h = 0; for(const ch of (name||'')) h = (h*31 + ch.charCodeAt(0)) % CUSTOM_TYPE_PALETTE.length;
@@ -1732,7 +1964,7 @@ function eventColor(e){
 }
 function eventLabel(e){
   if(e.type==='custom') return e.customType || 'Custom';
-  return {appointment:'Appointment', meeting:'Meeting', event:'Event', deadline:'Deadline', longterm:'Long-term'}[e.type] || e.type;
+  return {appointment:'Appointment', meeting:'Meeting', event:'Event', deadline:'Deadline', longterm:'Long-term', work:'Work'}[e.type] || e.type;
 }
 function isMultiDay(e){ return !!(e.endDate && e.endDate !== e.date); }
 let calMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
@@ -1887,6 +2119,138 @@ document.getElementById('deleteEventBtn').addEventListener('click', async ()=>{
   document.getElementById('eventOverlay').classList.remove('active');
 });
 
+/* ---------------- TO-DO ---------------- */
+function startOfWeek(d){ const dt=new Date(d.getFullYear(),d.getMonth(),d.getDate()); const day=dt.getDay(); dt.setDate(dt.getDate()-day); return dt; }
+let todoMode = 'day';
+let todoDate = new Date();
+function todoPeriodKey(){
+  if(todoMode==='day') return dstr(todoDate);
+  if(todoMode==='week') return dstr(startOfWeek(todoDate));
+  return `${todoDate.getFullYear()}-${pad2(todoDate.getMonth()+1)}`;
+}
+function todoPeriodRange(){
+  if(todoMode==='day'){ const d=dstr(todoDate); return [d,d]; }
+  if(todoMode==='week'){ const s=startOfWeek(todoDate); const e=new Date(s); e.setDate(e.getDate()+6); return [dstr(s), dstr(e)]; }
+  const first = new Date(todoDate.getFullYear(), todoDate.getMonth(), 1);
+  const last = new Date(todoDate.getFullYear(), todoDate.getMonth()+1, 0);
+  return [dstr(first), dstr(last)];
+}
+function todoPeriodLabelText(){
+  if(todoMode==='day') return todoDate.toLocaleDateString('en-US',{weekday:'short', month:'short', day:'numeric'});
+  if(todoMode==='week'){ const s=startOfWeek(todoDate); const e=new Date(s); e.setDate(e.getDate()+6); return `${s.toLocaleDateString('en-US',{month:'short',day:'numeric'})} – ${e.toLocaleDateString('en-US',{month:'short',day:'numeric'})}`; }
+  return todoDate.toLocaleDateString('en-US',{month:'long', year:'numeric'});
+}
+function todoScopeWord(){ return todoMode==='day'?'day':todoMode==='week'?'week':'month'; }
+function taskCategoryColor(cat){ return {work:'var(--task-work)', personal:'var(--task-personal)', other:'var(--task-other)'}[cat] || 'var(--ink-dim)'; }
+
+function renderTodo(){
+  const label = document.getElementById('todoPeriodLabel');
+  if(!label) return;
+  label.textContent = todoPeriodLabelText();
+  document.getElementById('todoGoalScope').textContent = todoScopeWord();
+  const [start,end] = todoPeriodRange();
+  const key = todoPeriodKey();
+
+  const goals = DB.goals.filter(g=>g.periodType===todoMode && g.periodKey===key);
+  const goalsWrap = document.getElementById('goalsList');
+  goalsWrap.innerHTML = goals.length? goals.map(g=>`
+    <div class="linked-row"><span style="display:flex;align-items:center;gap:8px;"><input type="checkbox" data-goal-toggle="${g.id}" ${g.done?'checked':''}> <span style="${g.done?'text-decoration:line-through;color:var(--ink-dim);':''}">${esc(g.text)}</span></span><a href="#" data-goal-delete="${g.id}" style="color:var(--brick);text-decoration:none;">×</a></div>`).join('')
+    : `<div style="font-size:12px;color:var(--ink-dim);">No goals set for this ${todoScopeWord()} yet.</div>`;
+  goalsWrap.querySelectorAll('[data-goal-toggle]').forEach(el=>el.addEventListener('change', async ()=>{
+    await db.collection('users').doc(uid).collection('goals').doc(el.dataset.goalToggle).update({done: el.checked});
+  }));
+  goalsWrap.querySelectorAll('[data-goal-delete]').forEach(el=>el.addEventListener('click', async (e)=>{
+    e.preventDefault();
+    await db.collection('users').doc(uid).collection('goals').doc(el.dataset.goalDelete).delete();
+  }));
+
+  const tasks = [...DB.tasks].filter(t=> t.date>=start && t.date<=end).sort((a,b)=>a.date.localeCompare(b.date));
+  const tasksWrap = document.getElementById('tasksList');
+  tasksWrap.innerHTML = tasks.length? tasks.map(t=>{
+    const app = DB.apps.find(a=>a.id===t.linkedAppId);
+    const contact = DB.contacts.find(c=>c.id===t.linkedContactId);
+    return `<div class="linked-row" data-task-id="${t.id}" style="cursor:pointer;">
+      <span style="display:flex;align-items:center;gap:8px;"><input type="checkbox" data-task-toggle="${t.id}" ${t.done?'checked':''}><span class="cal-dot" style="background:${taskCategoryColor(t.category)}"></span><span style="${t.done?'text-decoration:line-through;color:var(--ink-dim);':''}">${esc(t.title)}</span>${app? ` <span class="tag">${esc(app.role)}</span>`:''}${contact? ` <span class="tag">${esc(contact.name)}</span>`:''}</span>
+      <span class="tag">${t.date}</span>
+    </div>`;
+  }).join('') : `<div class="empty"><b>Nothing scheduled</b>Add a task for this ${todoScopeWord()}.</div>`;
+  tasksWrap.querySelectorAll('[data-task-toggle]').forEach(el=>el.addEventListener('click', (e)=> e.stopPropagation()));
+  tasksWrap.querySelectorAll('[data-task-toggle]').forEach(el=>el.addEventListener('change', async ()=>{
+    await db.collection('users').doc(uid).collection('tasks').doc(el.dataset.taskToggle).update({done: el.checked});
+  }));
+  tasksWrap.querySelectorAll('[data-task-id]').forEach(el=>el.addEventListener('click', (e)=>{
+    if(e.target.matches('input[type=checkbox]')) return;
+    openTaskModal(el.dataset.taskId);
+  }));
+}
+function setTodoToggle(id){ ['todoBtnDay','todoBtnWeek','todoBtnMonth'].forEach(i=>document.getElementById(i).classList.toggle('on', i===id)); }
+document.getElementById('todoBtnDay').addEventListener('click', ()=>{ todoMode='day'; setTodoToggle('todoBtnDay'); renderTodo(); });
+document.getElementById('todoBtnWeek').addEventListener('click', ()=>{ todoMode='week'; setTodoToggle('todoBtnWeek'); renderTodo(); });
+document.getElementById('todoBtnMonth').addEventListener('click', ()=>{ todoMode='month'; setTodoToggle('todoBtnMonth'); renderTodo(); });
+document.getElementById('todoPrevBtn').addEventListener('click', ()=>{
+  if(todoMode==='day') todoDate.setDate(todoDate.getDate()-1);
+  else if(todoMode==='week') todoDate.setDate(todoDate.getDate()-7);
+  else todoDate.setMonth(todoDate.getMonth()-1);
+  renderTodo();
+});
+document.getElementById('todoNextBtn').addEventListener('click', ()=>{
+  if(todoMode==='day') todoDate.setDate(todoDate.getDate()+1);
+  else if(todoMode==='week') todoDate.setDate(todoDate.getDate()+7);
+  else todoDate.setMonth(todoDate.getMonth()+1);
+  renderTodo();
+});
+document.getElementById('todoTodayBtn').addEventListener('click', ()=>{ todoDate = new Date(); renderTodo(); });
+document.getElementById('addGoalBtn').addEventListener('click', async ()=>{
+  const input = document.getElementById('goalInput');
+  const text = input.value.trim();
+  if(!text) return;
+  await db.collection('users').doc(uid).collection('goals').add({text, done:false, periodType:todoMode, periodKey:todoPeriodKey(), createdAt:Date.now()});
+  input.value='';
+});
+
+function populateTaskSelects(){
+  document.getElementById('t_app').innerHTML = '<option value="">— none —</option>' + DB.apps.map(a=>`<option value="${a.id}">${esc(a.role)} @ ${esc(a.company)}</option>`).join('');
+  document.getElementById('t_contact').innerHTML = '<option value="">— none —</option>' + DB.contacts.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');
+}
+function openTaskModal(id, prefillDate){
+  populateTaskSelects();
+  const isEdit = !!id;
+  document.getElementById('taskModalTitle').textContent = isEdit?'Edit task':'New task';
+  document.getElementById('deleteTaskBtn').style.display = isEdit?'inline-flex':'none';
+  const t = isEdit? DB.tasks.find(x=>x.id===id) : {date: prefillDate||dstr(todoDate)};
+  document.getElementById('t_id').value = id||'';
+  document.getElementById('t_title').value = t.title||'';
+  document.getElementById('t_category').value = t.category||'work';
+  document.getElementById('t_date').value = t.date||'';
+  document.getElementById('t_app').value = t.linkedAppId||'';
+  document.getElementById('t_contact').value = t.linkedContactId||'';
+  document.getElementById('t_notes').value = t.notes||'';
+  document.getElementById('taskOverlay').classList.add('active');
+}
+document.getElementById('addTaskBtn').addEventListener('click', ()=>openTaskModal(null, dstr(todoDate)));
+document.getElementById('saveTaskBtn').addEventListener('click', async ()=>{
+  const id = document.getElementById('t_id').value;
+  const data = {
+    title: document.getElementById('t_title').value.trim(),
+    category: document.getElementById('t_category').value,
+    date: document.getElementById('t_date').value,
+    linkedAppId: document.getElementById('t_app').value,
+    linkedContactId: document.getElementById('t_contact').value,
+    notes: document.getElementById('t_notes').value.trim(),
+    updatedAt: Date.now()
+  };
+  if(!data.title || !data.date){ alert('Give it a title and a date.'); return; }
+  const col = db.collection('users').doc(uid).collection('tasks');
+  if(id){ data.done = (DB.tasks.find(x=>x.id===id)||{}).done||false; await col.doc(id).update(data); }
+  else { data.done=false; await col.add({...data, createdAt: Date.now()}); }
+  document.getElementById('taskOverlay').classList.remove('active');
+});
+document.getElementById('deleteTaskBtn').addEventListener('click', async ()=>{
+  const id = document.getElementById('t_id').value;
+  await db.collection('users').doc(uid).collection('tasks').doc(id).delete();
+  document.getElementById('taskOverlay').classList.remove('active');
+});
+
 /* ---------------- SETTINGS ---------------- */
 document.getElementById('settingsBtn').addEventListener('click', ()=>{
   document.getElementById('s_apikey').value = settings.apiKey||'';
@@ -1936,6 +2300,151 @@ function renderInboxList(){
   });
 }
 document.getElementById('reviewInboxBtn').addEventListener('click', renderInboxList);
+
+/* ---------------- DOJO (home) ---------------- */
+let currentQuoteId = null;
+function renderDojo(){
+  const greetingEl = document.getElementById('dojoGreeting');
+  if(!greetingEl) return;
+  const now = new Date();
+  const hour = now.getHours();
+  const greeting = hour<12? 'Good morning' : hour<18? 'Good afternoon' : 'Good evening';
+  greetingEl.textContent = `${greeting}.`;
+  document.getElementById('dojoDate').textContent = now.toLocaleDateString('en-US', {weekday:'long', month:'long', day:'numeric', year:'numeric'});
+
+  const todayStr = dstr(now);
+  const evs = typeof eventsOnDate==='function'? eventsOnDate(todayStr) : [];
+  const calWrap = document.getElementById('dojoCalendarList');
+  calWrap.innerHTML = evs.length? evs.map(e=>`
+    <div class="linked-row"><span><span class="cal-dot" style="background:${eventColor(e)}"></span>${esc(e.title)}</span><span class="tag">${isMultiDay(e)?'All day':(e.time||'')}</span></div>`).join('')
+    : `<div style="font-size:12px;color:var(--ink-dim);">Nothing on the calendar today.</div>`;
+
+  const todayTasks = DB.tasks.filter(t=>t.date===todayStr);
+  const taskWrap = document.getElementById('dojoTasksList');
+  taskWrap.innerHTML = todayTasks.length? todayTasks.map(t=>`
+    <div class="linked-row"><span><span class="cal-dot" style="background:${taskCategoryColor(t.category)}"></span><span style="${t.done?'text-decoration:line-through;color:var(--ink-dim);':''}">${esc(t.title)}</span></span></div>`).join('')
+    : `<div style="font-size:12px;color:var(--ink-dim);">Nothing on today's to-do list.</div>`;
+
+  if(!currentQuoteId && DB.quotes.length) pickRandomQuote();
+  renderQuoteDisplay();
+}
+function pickRandomQuote(){
+  if(DB.quotes.length===0){ currentQuoteId=null; return; }
+  const pick = DB.quotes[Math.floor(Math.random()*DB.quotes.length)];
+  currentQuoteId = pick.id;
+}
+function renderQuoteDisplay(){
+  const textEl = document.getElementById('dojoQuoteText');
+  const authorEl = document.getElementById('dojoQuoteAuthor');
+  if(!textEl) return;
+  const q = DB.quotes.find(x=>x.id===currentQuoteId);
+  if(!q){ textEl.textContent = 'Add your first quote to see it here.'; authorEl.textContent=''; return; }
+  textEl.textContent = q.text;
+  authorEl.textContent = q.author? `— ${q.author}` : '';
+}
+document.getElementById('dojoShuffleBtn').addEventListener('click', ()=>{
+  if(DB.quotes.length<2){ pickRandomQuote(); renderQuoteDisplay(); return; }
+  let next;
+  do{ next = DB.quotes[Math.floor(Math.random()*DB.quotes.length)]; }while(next.id===currentQuoteId);
+  currentQuoteId = next.id;
+  renderQuoteDisplay();
+});
+document.getElementById('dojoManageQuotesBtn').addEventListener('click', ()=>{
+  document.getElementById('q_text').value='';
+  document.getElementById('q_author').value='';
+  document.getElementById('quoteOverlay').classList.add('active');
+});
+function renderQuoteManager(){
+  const wrap = document.getElementById('quoteManagerList');
+  if(!wrap) return;
+  wrap.innerHTML = DB.quotes.length? DB.quotes.map(q=>`
+    <div class="linked-row"><span>${esc(q.text)}${q.author? ` <span class="tag">${esc(q.author)}</span>`:''}</span><a href="#" data-quote-delete="${q.id}" style="color:var(--brick);text-decoration:none;">×</a></div>`).join('')
+    : `<div style="font-size:12px;color:var(--ink-dim);">No quotes yet.</div>`;
+  wrap.querySelectorAll('[data-quote-delete]').forEach(el=>el.addEventListener('click', async (e)=>{
+    e.preventDefault();
+    await db.collection('users').doc(uid).collection('quotes').doc(el.dataset.quoteDelete).delete();
+  }));
+  renderDojo();
+}
+document.getElementById('addQuoteBtn').addEventListener('click', async ()=>{
+  const text = document.getElementById('q_text').value.trim();
+  const author = document.getElementById('q_author').value.trim();
+  if(!text) return;
+  await db.collection('users').doc(uid).collection('quotes').add({text, author, createdAt: Date.now()});
+  document.getElementById('q_text').value='';
+  document.getElementById('q_author').value='';
+});
+
+/* ---------------- OASIS ---------------- */
+let oasisTab = 'all';
+document.querySelectorAll('.oasis-tab').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.oasis-tab').forEach(b=>b.classList.remove('on'));
+    btn.classList.add('on');
+    oasisTab = btn.dataset.tab;
+    renderOasis();
+  });
+});
+const OASIS_ICONS = {link:'🔗', song:'🎵'};
+function renderOasis(){
+  const wrap = document.getElementById('oasisWrap');
+  if(!wrap) return;
+  const items = oasisTab==='all'? DB.oasis : DB.oasis.filter(o=>o.type===oasisTab);
+  if(items.length===0){ wrap.innerHTML = `<div class="empty"><b>Nothing here yet</b>Drop in a picture, a site, or a song worth keeping.</div>`; return; }
+  wrap.innerHTML = [...items].sort((a,b)=>(b.createdAt||0)-(a.createdAt||0)).map(o=>{
+    const media = o.type==='image' && o.imageUrl
+      ? `<img class="oasis-pic" src="${esc(o.imageUrl)}" alt="${esc(o.title||'')}">`
+      : `<div class="oasis-icon-block" style="background:${o.type==='song'?'#F1E9F6':'#E7EEF3'};">${OASIS_ICONS[o.type]||'🖼️'}</div>`;
+    return `<div class="item-card" data-id="${o.id}">
+      ${media}
+      <div class="item-title">${esc(o.title||'(untitled)')}</div>
+      ${o.note? `<div class="item-sub">${esc(o.note)}</div>`:''}
+      ${o.url? `<div class="link-chip"><a href="${esc(o.url)}" target="_blank" rel="noopener">Open ↗</a></div>`:''}
+    </div>`;
+  }).join('');
+  wrap.querySelectorAll('.item-card').forEach(c=>c.addEventListener('click', (e)=>{
+    if(e.target.closest('a')) return;
+    openOasisModal(c.dataset.id);
+  }));
+}
+document.getElementById('o_type').addEventListener('change', (e)=>{
+  document.getElementById('o_imageUrlWrap').style.display = e.target.value==='image'? 'block':'none';
+});
+function openOasisModal(id){
+  const isEdit = !!id;
+  document.getElementById('oasisModalTitle').textContent = isEdit?'Edit item':'New item';
+  document.getElementById('deleteOasisBtn').style.display = isEdit?'inline-flex':'none';
+  const o = isEdit? DB.oasis.find(x=>x.id===id) : {type:'image'};
+  document.getElementById('o_id').value = id||'';
+  document.getElementById('o_title').value = o.title||'';
+  document.getElementById('o_type').value = o.type||'image';
+  document.getElementById('o_imageUrl').value = o.imageUrl||'';
+  document.getElementById('o_url').value = o.url||'';
+  document.getElementById('o_note').value = o.note||'';
+  document.getElementById('o_imageUrlWrap').style.display = (o.type==='image')? 'block':'none';
+  document.getElementById('oasisOverlay').classList.add('active');
+}
+document.getElementById('addOasisBtn').addEventListener('click', ()=>openOasisModal(null));
+document.getElementById('saveOasisBtn').addEventListener('click', async ()=>{
+  const id = document.getElementById('o_id').value;
+  const data = {
+    title: document.getElementById('o_title').value.trim(),
+    type: document.getElementById('o_type').value,
+    imageUrl: document.getElementById('o_imageUrl').value.trim(),
+    url: document.getElementById('o_url').value.trim(),
+    note: document.getElementById('o_note').value.trim(),
+    updatedAt: Date.now()
+  };
+  if(!data.title){ alert('Give it a title.'); return; }
+  const col = db.collection('users').doc(uid).collection('oasis');
+  if(id) await col.doc(id).update(data); else await col.add({...data, createdAt: Date.now()});
+  document.getElementById('oasisOverlay').classList.remove('active');
+});
+document.getElementById('deleteOasisBtn').addEventListener('click', async ()=>{
+  const id = document.getElementById('o_id').value;
+  await db.collection('users').doc(uid).collection('oasis').doc(id).delete();
+  document.getElementById('oasisOverlay').classList.remove('active');
+});
 
 /* ---------------- QUICK CAPTURE (Desk) ---------------- */
 document.getElementById('captureBtn').addEventListener('click', async ()=>{
