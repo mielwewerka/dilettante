@@ -35,13 +35,14 @@
   --brick:#B23A2E;
   --line:#191510;
   --radius:12px;
-  --blue-desk:#7C6FCB;
+  --blue-desk:#5B4D9E;
   --blue-companies:#8FB4C9;
   --blue-materials:#456B87;
   --blue-sources:#3A5A72;
   --blue-notebook:#A9CBDA;
   --turquoise:#1FAFA8;
   --babypink:#EFA0BC;
+  --deepblue-translucent: rgba(30, 41, 120, 0.78);
 }
 *{box-sizing:border-box;}
 body{margin:0;background:var(--paper);color:var(--ink);font-family:'Space Grotesk',sans-serif;min-height:100vh;}
@@ -85,7 +86,7 @@ button{font-family:inherit;cursor:pointer;}
 .page-head{border-radius:var(--radius);padding:20px 24px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:flex-end;background:var(--blue-desk);position:relative;overflow:hidden;}
 .cute-sparkle{position:absolute;top:14px;right:18px;color:rgba(255,255,255,0.55);}
 #view-companies .cute-sparkle, #view-notebook .cute-sparkle{color:rgba(25,21,16,0.35);}
-.page-title{font-family:'Anton',sans-serif;font-size:40px;letter-spacing:-1px;line-height:0.95;color:#fff;}
+.page-title{font-family:'Anton',sans-serif;font-size:40px;letter-spacing:-0.4px;line-height:0.95;color:#fff;}
 .page-tag{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:rgba(255,255,255,0.75);margin-top:4px;text-transform:uppercase;}
 #view-companies .page-head{background:var(--blue-companies);}
 #view-companies .page-title, #view-companies .page-tag{color:var(--ink);}
@@ -117,7 +118,7 @@ button{font-family:inherit;cursor:pointer;}
 .board{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;align-items:start;}
 .column{border:2px solid var(--ink);border-radius:var(--radius);background:var(--paper-raised);min-height:110px;overflow:hidden;}
 .column-head{padding:9px 10px;color:#fff;display:flex;align-items:center;gap:8px;}
-.column-title{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:500;letter-spacing:1px;text-transform:uppercase;}
+.column-title{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:500;letter-spacing:1.4px;text-transform:uppercase;}
 .column-count{margin-left:auto;font-family:'IBM Plex Mono';font-size:11px;}
 .column-body{padding:9px;display:flex;flex-direction:column;gap:8px;min-height:60px;}
 .column-body.dragover{background:var(--paper);}
@@ -302,6 +303,7 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
           <button class="co-tab on" data-tab="unsorted">General / Unsorted</button>
           <button class="co-tab" data-tab="contacted">Contacted</button>
         </div>
+        <select id="companiesSortSelect" class="sort-select"><option value="alpha">Sort: A–Z</option><option value="created">Sort: Date added</option><option value="updated">Sort: Last edited</option></select>
       </div>
       <div id="companiesWrap" class="grid"></div>
     </div>
@@ -818,7 +820,7 @@ function renderDesk(){
     boardWrap.innerHTML = STAGES.map((s,idx)=>{
       const items = applySort(DB.apps.filter(a=>a.stage==idx), deskSort, 'role');
       return `<div class="column">
-        <div class="column-head" style="background:var(--babypink)"><span class="badge">${dotBadge(idx,16)}</span><span class="column-title">${s}</span><span class="column-count">${items.length}</span></div>
+        <div class="column-head" style="background:var(--deepblue-translucent)"><span class="badge">${dotBadge(idx,16)}</span><span class="column-title">${s}</span><span class="column-count">${items.length}</span></div>
         <div class="column-body" data-stage="${idx}">${items.map(cardHTML).join('')}</div>
       </div>`;
     }).join('');
@@ -974,6 +976,7 @@ function populateCompanySelect(elId, selectedId){
 }
 
 let companiesTab = 'unsorted';
+let companiesSort = 'alpha';
 document.querySelectorAll('.co-tab').forEach(btn=>{
   btn.addEventListener('click', ()=>{
     document.querySelectorAll('.co-tab').forEach(b=>b.classList.remove('on'));
@@ -982,10 +985,11 @@ document.querySelectorAll('.co-tab').forEach(btn=>{
     renderCompanies();
   });
 });
+document.getElementById('companiesSortSelect').addEventListener('change', (e)=>{ companiesSort = e.target.value; renderCompanies(); });
 function renderCompanies(){
   const wrap = document.getElementById('companiesWrap');
   if(!wrap) return;
-  const items = DB.companies.filter(c=>(c.bank||'unsorted')===companiesTab);
+  const items = applySort(DB.companies.filter(c=>(c.bank||'unsorted')===companiesTab), companiesSort, 'name');
   if(items.length===0){ wrap.innerHTML = `<div class="empty"><b>Nothing here yet</b>Add a company to start tracking it.</div>`; return; }
   wrap.innerHTML = items.map(co=>{
     const apps = appsForCompany(co), contacts = contactsForCompany(co);
