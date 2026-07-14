@@ -675,10 +675,10 @@ const db = firebase.firestore();
    (see SETUP.md for exact policy SQL) */
 const SUPABASE_URL = "https://ukapfgdzbgkcxlxikmhi.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_47fNipS43Sv58nOeRddQ8g_ikMGPZ2r";
-let supabase = null;
+let sbClient = null;
 try{
   if(SUPABASE_URL !== "PASTE_ME" && window.supabase && window.supabase.createClient){
-    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   }
 }catch(e){
   console.error('Supabase init failed — PDF uploads will be unavailable, but the rest of the app is unaffected.', e);
@@ -1367,20 +1367,20 @@ document.getElementById('saveMaterialBtn').addEventListener('click', async ()=>{
   saveBtn.disabled = true;
   try{
     if(fileInput.files[0]){
-      if(!supabase){ statusEl.textContent = "PDF storage isn't set up yet — see SETUP.md."; saveBtn.disabled = false; return; }
+      if(!sbClient){ statusEl.textContent = "PDF storage isn't set up yet — see SETUP.md."; saveBtn.disabled = false; return; }
       const file = fileInput.files[0];
       statusEl.textContent = 'Uploading PDF...';
       const path = `users/${uid}/materials/${id}/${file.name}`;
-      const { error: uploadError } = await supabase.storage.from('materials').upload(path, file, { upsert: true });
+      const { error: uploadError } = await sbClient.storage.from('materials').upload(path, file, { upsert: true });
       if(uploadError) throw uploadError;
-      const { data: urlData } = supabase.storage.from('materials').getPublicUrl(path);
+      const { data: urlData } = sbClient.storage.from('materials').getPublicUrl(path);
       data.fileUrl = urlData.publicUrl;
       data.fileName = file.name;
       data.filePath = path;
     } else if(removeCheckbox && removeCheckbox.checked){
       const existing = DB.materials.find(x=>x.id===existingId);
-      if(existing && existing.filePath && supabase){
-        try{ await supabase.storage.from('materials').remove([existing.filePath]); }catch(e){ console.error('Storage delete failed', e); }
+      if(existing && existing.filePath && sbClient){
+        try{ await sbClient.storage.from('materials').remove([existing.filePath]); }catch(e){ console.error('Storage delete failed', e); }
       }
       data.fileUrl = firebase.firestore.FieldValue.delete();
       data.fileName = firebase.firestore.FieldValue.delete();
@@ -1399,8 +1399,8 @@ document.getElementById('saveMaterialBtn').addEventListener('click', async ()=>{
 document.getElementById('deleteMaterialBtn').addEventListener('click', async ()=>{
   const id = document.getElementById('m_id').value;
   const existing = DB.materials.find(x=>x.id===id);
-  if(existing && existing.filePath && supabase){
-    try{ await supabase.storage.from('materials').remove([existing.filePath]); }catch(e){ console.error('Storage delete failed', e); }
+  if(existing && existing.filePath && sbClient){
+    try{ await sbClient.storage.from('materials').remove([existing.filePath]); }catch(e){ console.error('Storage delete failed', e); }
   }
   await db.collection('users').doc(uid).collection('materials').doc(id).delete();
   document.getElementById('materialOverlay').classList.remove('active');
