@@ -217,6 +217,19 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
   60%{transform:translate(4px,-2px) rotate(6deg);}
   75%{transform:translate(-2px,1px) rotate(-3deg);}
 }
+.dandelion{cursor:pointer;}
+.seed{transform-origin:center;transition:opacity 0.7s ease, transform 0.7s ease;}
+.dandelion.blowing .seed{
+  animation-name:seedBlow;
+  animation-duration:1.3s;
+  animation-timing-function:ease-out;
+  animation-fill-mode:forwards;
+  animation-delay:var(--delay);
+}
+@keyframes seedBlow{
+  0%{opacity:1;transform:translate(0,0) rotate(0deg);}
+  100%{opacity:0;transform:translate(calc(var(--dx)*1px), calc(var(--dy)*1px)) rotate(70deg);}
+}
 
 /* ---------- OASIS ---------- */
 .oasis-masonry{column-count:4;column-gap:12px;}
@@ -263,7 +276,7 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
       <button class="nav-item" data-view="oasis">Oasis</button>
       <div class="nav-badge" id="inboxNavBadge">📥 <span id="inboxCount">0</span> new from newsletters</div>
     </div>
-    <div class="sidebar-foot">Synced via Firebase.<br>Newsletters land in your inbox for review, never auto-posted.<br><button class="btn logout" id="logoutBtn" style="margin-top:6px;padding:0;">Log out</button></div>
+    <div class="sidebar-foot">EARTH ANGELS AND TASTE POLLINATORS: WELCOME TO YOUR FUTURE! I AM SO GLAD MY LIFE IS EXACTLY AS I ALWAYS WANTED<br><button class="btn logout" id="logoutBtn" style="margin-top:6px;padding:0;">Log out</button></div>
   </div>
 
   <div class="main">
@@ -517,6 +530,33 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
           <button class="oasis-tab" data-tab="song">Songs</button>
         </div>
       </div>
+
+      <div class="dojo-card" style="text-align:center;max-width:220px;margin-bottom:20px;">
+        <svg id="dandelion" class="dandelion" width="90" height="90" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <line x1="50" y1="90" x2="50" y2="46" stroke="#7C9A6B" stroke-width="2.5"/>
+          <g id="dandelionSeeds">
+            <g class="seed" style="--dx:-6.0;--dy:-40.0;--delay:0.0s;"><line x1="50.0" y1="30.0" x2="50.0" y2="8.0" stroke="#EDE6D6" stroke-width="1.1"/><circle cx="50.0" cy="8.0" r="1.6" fill="#EDE6D6"/></g>
+            <g class="seed" style="--dx:14.5;--dy:-43.2;--delay:0.045s;"><line x1="53.1" y1="30.6" x2="61.5" y2="10.3" stroke="#EDE6D6" stroke-width="1.1"/><circle cx="61.5" cy="10.3" r="1.6" fill="#EDE6D6"/></g>
+            <g class="seed" style="--dx:32.9;--dy:-45.1;--delay:0.09s;"><line x1="55.7" y1="32.3" x2="71.2" y2="16.8" stroke="#EDE6D6" stroke-width="1.1"/><circle cx="71.2" cy="16.8" r="1.6" fill="#EDE6D6"/></g>
+            <g class="seed" style="--dx:29.1;--dy:-45.8;--delay:0.135s;"><line x1="57.4" y1="34.9" x2="77.7" y2="26.5" stroke="#EDE6D6" stroke-width="1.1"/><circle cx="77.7" cy="26.5" r="1.6" fill="#EDE6D6"/></g>
+            <g class="seed" style="--dx:38.0;--dy:-30.0;--delay:0.18s;"><line x1="58.0" y1="38.0" x2="80.0" y2="38.0" stroke="#EDE6D6" stroke-width="1.1"/><circle cx="80.0" cy="38.0" r="1.6" fill="#EDE6D6"/></g>
+            <g class="seed" style="--dx:41.1;--dy:-37.8;--delay:0.225s;"><line x1="57.4" y1="41.1" x2="77.7" y2="49.5" stroke="#EDE6D6" stroke-width="1.1"/><circle cx="77.7" cy="49.5" r="1.6" fill="#EDE6D6"/></g>
+            <g class="seed" style="--dx:20.9;--dy:-45.1;--delay:0.27s;"><line x1="55.7" y1="43.7" x2="71.2" y2="59.2" stroke="#EDE6D6" stroke-width="1.1"/><circle cx="71.2" cy="59.2" r="1.6" fill="#EDE6D6"/></g>
+            <g class="seed" style="--dx:14.5;--dy:-51.2;--delay:0.315s;"><line x1="53.1" y1="45.4" x2="61.5" y2="65.7" stroke="#EDE6D6" stroke-width="1.1"/><circle cx="61.5" cy="65.7" r="1.6" fill="#EDE6D6"/></g>
+            <g class="seed" style="--dx:6.0;--dy:-40.0;--delay:0.0s;"><line x1="50.0" y1="46.0" x2="50.0" y2="68.0" stroke="#EDE6D6" stroke-width="1.1"/><circle cx="50.0" cy="68.0" r="1.6" fill="#EDE6D6"/></g>
+            <g class="seed" style="--dx:-20.5;--dy:-43.2;--delay:0.045s;"><line x1="46.9" y1="45.4" x2="38.5" y2="65.7" stroke="#EDE6D6" stroke-width="1.1"/><circle cx="38.5" cy="65.7" r="1.6" fill="#EDE6D6"/></g>
+            <g class="seed" style="--dx:-26.9;--dy:-45.1;--delay:0.09s;"><line x1="44.3" y1="43.7" x2="28.8" y2="59.2" stroke="#EDE6D6" stroke-width="1.1"/><circle cx="28.8" cy="59.2" r="1.6" fill="#EDE6D6"/></g>
+            <g class="seed" style="--dx:-29.1;--dy:-45.8;--delay:0.135s;"><line x1="42.6" y1="41.1" x2="22.3" y2="49.5" stroke="#EDE6D6" stroke-width="1.1"/><circle cx="22.3" cy="49.5" r="1.6" fill="#EDE6D6"/></g>
+            <g class="seed" style="--dx:-44.0;--dy:-30.0;--delay:0.18s;"><line x1="42.0" y1="38.0" x2="20.0" y2="38.0" stroke="#EDE6D6" stroke-width="1.1"/><circle cx="20.0" cy="38.0" r="1.6" fill="#EDE6D6"/></g>
+            <g class="seed" style="--dx:-35.1;--dy:-37.8;--delay:0.225s;"><line x1="42.6" y1="34.9" x2="22.3" y2="26.5" stroke="#EDE6D6" stroke-width="1.1"/><circle cx="22.3" cy="26.5" r="1.6" fill="#EDE6D6"/></g>
+            <g class="seed" style="--dx:-20.9;--dy:-45.1;--delay:0.27s;"><line x1="44.3" y1="32.3" x2="28.8" y2="16.8" stroke="#EDE6D6" stroke-width="1.1"/><circle cx="28.8" cy="16.8" r="1.6" fill="#EDE6D6"/></g>
+            <g class="seed" style="--dx:-20.5;--dy:-51.2;--delay:0.315s;"><line x1="46.9" y1="30.6" x2="38.5" y2="10.3" stroke="#EDE6D6" stroke-width="1.1"/><circle cx="38.5" cy="10.3" r="1.6" fill="#EDE6D6"/></g>
+          </g>
+          <circle cx="50" cy="38" r="7" fill="#D9D2BE"/>
+        </svg>
+        <div><button class="btn small" id="wishBtn">Make a wish</button></div>
+      </div>
+
       <div id="oasisWrap" class="oasis-masonry"></div>
     </div>
 
@@ -878,6 +918,15 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
     <h2>Customize background</h2>
     <div class="field"><label>Background color</label><input type="color" id="bg_color" style="height:42px;padding:4px;cursor:pointer;"></div>
     <div class="field"><label>Background image URL <span style="text-transform:none;color:var(--ink-dim);">(overrides color if set)</span></label><input id="bg_imageUrl" placeholder="https://"></div>
+    <div class="field" id="bg_frameWrap" style="display:none;">
+      <label>Adjust frame</label>
+      <div id="bg_preview" style="width:100%;height:90px;border:1px solid var(--ink);border-radius:8px;background-size:cover;margin-bottom:10px;"></div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="display:flex;align-items:center;gap:10px;"><span style="font-family:'IBM Plex Mono';font-size:10px;width:70px;">Horizontal</span><input type="range" id="bg_posX" min="0" max="100" value="50" style="flex:1;"></div>
+        <div style="display:flex;align-items:center;gap:10px;"><span style="font-family:'IBM Plex Mono';font-size:10px;width:70px;">Vertical</span><input type="range" id="bg_posY" min="0" max="100" value="50" style="flex:1;"></div>
+        <div style="display:flex;align-items:center;gap:10px;"><span style="font-family:'IBM Plex Mono';font-size:10px;width:70px;">Zoom</span><input type="range" id="bg_zoom" min="100" max="220" value="100" style="flex:1;"></div>
+      </div>
+    </div>
     <div class="modal-actions"><button class="btn ghost" id="resetBgBtn">Reset to default</button><button class="btn" id="saveBgBtn">Save</button></div>
   </div>
 </div>
@@ -2304,12 +2353,18 @@ function applyBg(pagekey, bg){
   if(bg && bg.imageUrl){
     head.style.backgroundImage = `url("${bg.imageUrl}")`;
     head.style.backgroundColor = '';
+    head.style.backgroundSize = `${bg.zoom||100}%`;
+    head.style.backgroundPosition = `${bg.posX!==undefined?bg.posX:50}% ${bg.posY!==undefined?bg.posY:50}%`;
   } else if(bg && bg.color){
     head.style.backgroundImage = 'none';
     head.style.backgroundColor = bg.color;
+    head.style.backgroundSize = '';
+    head.style.backgroundPosition = '';
   } else {
     head.style.backgroundImage = '';
     head.style.backgroundColor = '';
+    head.style.backgroundSize = '';
+    head.style.backgroundPosition = '';
   }
 }
 function applyAllPageBackgrounds(){
@@ -2318,6 +2373,22 @@ function applyAllPageBackgrounds(){
     applyBg(btn.dataset.pagekey, bgs[btn.dataset.pagekey]);
   });
 }
+function updateBgPreview(){
+  const url = document.getElementById('bg_imageUrl').value.trim();
+  const wrap = document.getElementById('bg_frameWrap');
+  const preview = document.getElementById('bg_preview');
+  if(url){
+    wrap.style.display = 'block';
+    preview.style.backgroundImage = `url("${url}")`;
+    preview.style.backgroundPosition = `${document.getElementById('bg_posX').value}% ${document.getElementById('bg_posY').value}%`;
+    preview.style.backgroundSize = `${document.getElementById('bg_zoom').value}%`;
+  } else {
+    wrap.style.display = 'none';
+  }
+}
+['bg_imageUrl','bg_posX','bg_posY','bg_zoom'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', updateBgPreview);
+});
 document.querySelectorAll('.page-bg-btn').forEach(btn=>{
   btn.addEventListener('click', (e)=>{
     e.stopPropagation();
@@ -2325,17 +2396,25 @@ document.querySelectorAll('.page-bg-btn').forEach(btn=>{
     const bg = (settings.pageBackgrounds||{})[currentBgPageKey] || {};
     document.getElementById('bg_color').value = bg.color || '#7c6fcb';
     document.getElementById('bg_imageUrl').value = bg.imageUrl || '';
+    document.getElementById('bg_posX').value = bg.posX!==undefined? bg.posX : 50;
+    document.getElementById('bg_posY').value = bg.posY!==undefined? bg.posY : 50;
+    document.getElementById('bg_zoom').value = bg.zoom || 100;
+    updateBgPreview();
     document.getElementById('pageBgOverlay').classList.add('active');
   });
 });
 document.getElementById('saveBgBtn').addEventListener('click', async ()=>{
   const color = document.getElementById('bg_color').value;
   const imageUrl = document.getElementById('bg_imageUrl').value.trim();
+  const posX = parseInt(document.getElementById('bg_posX').value);
+  const posY = parseInt(document.getElementById('bg_posY').value);
+  const zoom = parseInt(document.getElementById('bg_zoom').value);
   const ref = db.collection('users').doc(uid).collection('settings').doc('main');
+  const data = {color, imageUrl, posX, posY, zoom};
   try{
-    await ref.update({[`pageBackgrounds.${currentBgPageKey}`]: {color, imageUrl}});
+    await ref.update({[`pageBackgrounds.${currentBgPageKey}`]: data});
   }catch(e){
-    await ref.set({pageBackgrounds:{[currentBgPageKey]:{color,imageUrl}}}, {merge:true});
+    await ref.set({pageBackgrounds:{[currentBgPageKey]:data}}, {merge:true});
   }
   document.getElementById('pageBgOverlay').classList.remove('active');
 });
@@ -2460,6 +2539,18 @@ document.getElementById('eightBall').addEventListener('click', ()=>{
     eightBallShaking = false;
   }, 600);
 });
+
+let dandelionBlowing = false;
+document.getElementById('wishBtn').addEventListener('click', ()=>{
+  if(dandelionBlowing) return;
+  dandelionBlowing = true;
+  const flower = document.getElementById('dandelion');
+  flower.classList.add('blowing');
+  setTimeout(()=>{
+    flower.classList.remove('blowing');
+    dandelionBlowing = false;
+  }, 3200);
+});
 function renderQuoteManager(){
   const wrap = document.getElementById('quoteManagerList');
   if(!wrap) return;
@@ -2498,7 +2589,7 @@ function renderOasis(){
   const items = oasisTab==='all'? DB.oasis : DB.oasis.filter(o=>o.type===oasisTab);
   if(items.length===0){ wrap.innerHTML = `<div class="empty"><b>Nothing here yet</b>Drop in a picture, a site, or a song worth keeping.</div>`; return; }
   wrap.innerHTML = [...items].sort((a,b)=>(b.createdAt||0)-(a.createdAt||0)).map(o=>{
-    const media = o.type==='image' && o.imageUrl
+    const media = o.imageUrl
       ? `<img class="oasis-pic" src="${esc(o.imageUrl)}" alt="${esc(o.title||'')}" loading="lazy">`
       : `<div class="oasis-icon-block" style="background:${o.type==='song'?'#F1E9F6':'#E7EEF3'};">${OASIS_ICONS[o.type]||'🖼️'}</div>`;
     const hasText = o.title || o.note || o.url;
@@ -2534,8 +2625,35 @@ function openOasisModal(id){
   document.getElementById('oasisOverlay').classList.add('active');
 }
 document.getElementById('addOasisBtn').addEventListener('click', ()=>openOasisModal(null));
+
+function fetchAlbumArt(query){
+  return new Promise((resolve)=>{
+    const cbName = 'itunesCb_' + Date.now() + '_' + Math.floor(Math.random()*10000);
+    let done = false;
+    const cleanup = ()=>{ delete window[cbName]; const s = document.getElementById(cbName); if(s) s.remove(); };
+    window[cbName] = (data)=>{
+      if(done) return;
+      done = true;
+      let art = null;
+      if(data && data.results && data.results.length){
+        art = data.results[0].artworkUrl100 || null;
+        if(art) art = art.replace('100x100bb', '600x600bb');
+      }
+      cleanup();
+      resolve(art);
+    };
+    const script = document.createElement('script');
+    script.id = cbName;
+    script.src = `https://itunes.apple.com/search?media=music&entity=song&limit=1&callback=${cbName}&term=${encodeURIComponent(query)}`;
+    script.onerror = ()=>{ if(done) return; done = true; cleanup(); resolve(null); };
+    document.body.appendChild(script);
+    setTimeout(()=>{ if(done) return; done = true; cleanup(); resolve(null); }, 4000);
+  });
+}
+
 document.getElementById('saveOasisBtn').addEventListener('click', async ()=>{
   const id = document.getElementById('o_id').value;
+  const saveBtn = document.getElementById('saveOasisBtn');
   const data = {
     title: document.getElementById('o_title').value.trim(),
     type: document.getElementById('o_type').value,
@@ -2544,7 +2662,19 @@ document.getElementById('saveOasisBtn').addEventListener('click', async ()=>{
     note: document.getElementById('o_note').value.trim(),
     updatedAt: Date.now()
   };
-  if(!data.imageUrl && !data.url){ alert('Add an image or a link — everything else is optional.'); return; }
+  if(data.type==='song'){
+    if(!data.title && !data.url){ alert('Add a song title or a link.'); return; }
+  } else if(!data.imageUrl && !data.url){
+    alert('Add an image or a link — everything else is optional.'); return;
+  }
+  if(data.type==='song' && !data.imageUrl && data.title){
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Finding album art...';
+    const art = await fetchAlbumArt(data.title);
+    if(art) data.imageUrl = art;
+    saveBtn.disabled = false;
+    saveBtn.textContent = 'Save item';
+  }
   const col = db.collection('users').doc(uid).collection('oasis');
   if(id) await col.doc(id).update(data); else await col.add({...data, createdAt: Date.now()});
   document.getElementById('oasisOverlay').classList.remove('active');
