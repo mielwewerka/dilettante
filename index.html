@@ -815,10 +815,18 @@ tr.row:hover{background:var(--paper);cursor:pointer;}
       <div class="field"><label>Start time</label><input type="time" id="e_time"></div>
       <div class="field"><label>End time</label><input type="time" id="e_endTime"></div>
     </div>
+    <div class="field" id="e_shiftWrap" style="display:none;">
+      <label>Quick shift</label>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn ghost small shift-btn" data-start="07:30" data-end="15:30" type="button">7:30 AM – 3:30 PM</button>
+        <button class="btn ghost small shift-btn" data-start="08:00" data-end="16:30" type="button">8:00 AM – 4:30 PM</button>
+        <button class="btn ghost small shift-btn" data-start="10:15" data-end="18:15" type="button">10:15 AM – 6:15 PM</button>
+      </div>
+    </div>
     <div class="field"><label>Linked application</label><select id="e_app"><option value="">— none —</option></select></div>
     <div class="field"><label>Location</label><input id="e_location"></div>
     <div class="field"><label>Notes</label><textarea id="e_notes"></textarea></div>
-    <div class="modal-actions"><button class="btn ghost" id="deleteEventBtn" style="display:none;">Delete</button><button class="btn" id="saveEventBtn">Save event</button></div>
+    <div class="modal-actions"><button class="btn ghost" id="deleteEventBtn" style="display:none;">Delete</button><div style="display:flex;gap:8px;"><button class="btn ghost" id="duplicateEventBtn" style="display:none;">Duplicate</button><button class="btn" id="saveEventBtn">Save event</button></div></div>
   </div>
 </div>
 
@@ -1000,8 +1008,8 @@ function attachListeners(){
   unsubs.push(col('notes').onSnapshot(snap=>{ DB.notes = snap.docs.map(d=>({id:d.id, ...d.data()})); renderNotebook(); }));
   unsubs.push(col('radar').onSnapshot(snap=>{ DB.radar = snap.docs.map(d=>({id:d.id, ...d.data()})); renderRadar(); }));
   unsubs.push(col('events').onSnapshot(snap=>{ DB.events = snap.docs.map(d=>({id:d.id, ...d.data()})); renderCalendar(); }));
-  unsubs.push(col('tasks').onSnapshot(snap=>{ DB.tasks = snap.docs.map(d=>({id:d.id, ...d.data()})); renderTodo(); renderDojo(); }));
-  unsubs.push(col('goals').onSnapshot(snap=>{ DB.goals = snap.docs.map(d=>({id:d.id, ...d.data()})); renderTodo(); }));
+  unsubs.push(col('tasks').onSnapshot(snap=>{ DB.tasks = snap.docs.map(d=>({id:d.id, ...d.data()})); rolloverOverdueTasks(); renderTodo(); renderDojo(); }));
+  unsubs.push(col('goals').onSnapshot(snap=>{ DB.goals = snap.docs.map(d=>({id:d.id, ...d.data()})); rolloverOverdueGoals(); renderTodo(); }));
   unsubs.push(col('quotes').onSnapshot(snap=>{ DB.quotes = snap.docs.map(d=>({id:d.id, ...d.data()})); renderQuoteManager(); }));
   unsubs.push(col('oasis').onSnapshot(snap=>{ DB.oasis = snap.docs.map(d=>({id:d.id, ...d.data()})); renderOasis(); }));
   unsubs.push(db.collection('users').doc(uid).collection('settings').doc('main').onSnapshot(doc=>{
@@ -1286,7 +1294,11 @@ function openCompanyView(id){
 
   const contacts = contactsForCompany(co);
   document.getElementById('co_view_contacts').innerHTML = `<label style="display:block;font-family:'IBM Plex Mono';font-size:10px;letter-spacing:0.5px;text-transform:uppercase;color:var(--ink-dim);margin:16px 0 6px;">Contacts</label>` +
-    (contacts.length? `<div class="linked-list">${contacts.map(c=>`<div class="linked-row" data-goto-contact="${c.id}" style="cursor:pointer;"><span>${esc(c.name)}</span><span class="tag">${esc(c.role||'')}</span></div>`).join('')}</div>` : `<div style="font-size:12px;color:var(--ink-dim);">None linked yet.</div>`) +
+    (contacts.length? contacts.map(c=>{
+      const updates = (c.updates||[]).slice().sort((a,b)=> b.date.localeCompare(a.date));
+      return `<div class="linked-row" data-goto-contact="${c.id}" style="cursor:pointer;"><span>${esc(c.name)}</span><span class="tag">${esc(c.role||'')}</span></div>` +
+        (updates.length? `<div style="margin:2px 0 10px 14px;display:flex;flex-direction:column;gap:3px;">${updates.map(u=>`<div style="font-size:11px;color:var(--ink-dim);"><span class="tag" style="margin-right:6px;">${u.date}</span>${esc(u.text)}</div>`).join('')}</div>` : '');
+    }).join('') : `<div style="font-size:12px;color:var(--ink-dim);">None linked yet.</div>`) +
     `<button class="btn small" id="coAddContactBtn" style="margin-top:8px;">+ New contact here</button>`;
 
   const mats = materialsForCompany(co);
@@ -2129,17 +2141,29 @@ function populateEventAppSelect(selectedId){
 }
 document.getElementById('e_type').addEventListener('change', (e)=>{
   document.getElementById('e_customTypeWrap').style.display = e.target.value==='custom'? 'block':'none';
+  document.getElementById('e_shiftWrap').style.display = e.target.value==='work'? 'block':'none';
 });
+document.querySelectorAll('.shift-btn').forEach(btn=>{
+  btn.addEventListener('click', (e)=>{
+    e.preventDefault();
+    document.getElementById('e_time').value = btn.dataset.start;
+    document.getElementById('e_endTime').value = btn.dataset.end;
+  });
+});
+let duplicatingEventFrom = null;
 function openEventModal(id, prefillDate){
   const isEdit = !!id;
+  duplicatingEventFrom = null;
   document.getElementById('eventModalTitle').textContent = isEdit?'Edit event':'New event';
   document.getElementById('deleteEventBtn').style.display = isEdit?'inline-flex':'none';
+  document.getElementById('duplicateEventBtn').style.display = isEdit?'inline-flex':'none';
   const ev = isEdit? DB.events.find(x=>x.id===id) : {date: prefillDate||dstr(new Date())};
   document.getElementById('e_id').value = id||'';
   document.getElementById('e_title').value = ev.title||'';
   document.getElementById('e_type').value = ev.type||'appointment';
   document.getElementById('e_customType').value = ev.customType||'';
   document.getElementById('e_customTypeWrap').style.display = (ev.type==='custom')? 'block':'none';
+  document.getElementById('e_shiftWrap').style.display = (ev.type==='work')? 'block':'none';
   document.getElementById('e_date').value = ev.date||'';
   document.getElementById('e_endDate').value = ev.endDate||'';
   document.getElementById('e_time').value = ev.time||'';
@@ -2150,6 +2174,14 @@ function openEventModal(id, prefillDate){
   document.getElementById('eventOverlay').classList.add('active');
 }
 document.getElementById('addEventBtn').addEventListener('click', ()=>openEventModal(null));
+document.getElementById('duplicateEventBtn').addEventListener('click', ()=>{
+  const id = document.getElementById('e_id').value;
+  duplicatingEventFrom = id;
+  document.getElementById('eventModalTitle').textContent = 'Duplicate event';
+  document.getElementById('e_id').value = '';
+  document.getElementById('deleteEventBtn').style.display = 'none';
+  document.getElementById('duplicateEventBtn').style.display = 'none';
+});
 document.getElementById('saveEventBtn').addEventListener('click', async ()=>{
   const id = document.getElementById('e_id').value;
   const data = {
@@ -2169,6 +2201,7 @@ document.getElementById('saveEventBtn').addEventListener('click', async ()=>{
   if(data.type==='custom' && !data.customType){ alert('Give the custom category a name.'); return; }
   const col = db.collection('users').doc(uid).collection('events');
   if(id) await col.doc(id).update(data); else await col.add({...data, createdAt: Date.now()});
+  duplicatingEventFrom = null;
   document.getElementById('eventOverlay').classList.remove('active');
 });
 document.getElementById('deleteEventBtn').addEventListener('click', async ()=>{
@@ -2179,6 +2212,41 @@ document.getElementById('deleteEventBtn').addEventListener('click', async ()=>{
 
 /* ---------------- TO-DO ---------------- */
 function startOfWeek(d){ const dt=new Date(d.getFullYear(),d.getMonth(),d.getDate()); const day=dt.getDay(); dt.setDate(dt.getDate()-day); return dt; }
+function currentPeriodKeyFor(periodType){
+  const now = new Date();
+  if(periodType==='day') return dstr(now);
+  if(periodType==='week') return dstr(startOfWeek(now));
+  return `${now.getFullYear()}-${pad2(now.getMonth()+1)}`;
+}
+let rollingOverTasks = false;
+async function rolloverOverdueTasks(){
+  if(rollingOverTasks) return;
+  const todayStr = dstr(new Date());
+  const overdue = DB.tasks.filter(t=>!t.done && t.date && t.date<todayStr);
+  if(overdue.length===0) return;
+  rollingOverTasks = true;
+  try{
+    for(const t of overdue){
+      await db.collection('users').doc(uid).collection('tasks').doc(t.id).update({date: todayStr, rolledOver: true});
+    }
+  }finally{ rollingOverTasks = false; }
+}
+let rollingOverGoals = false;
+async function rolloverOverdueGoals(){
+  if(rollingOverGoals) return;
+  const overdue = DB.goals.filter(g=>{
+    if(g.done) return false;
+    const currentKey = currentPeriodKeyFor(g.periodType);
+    return g.periodKey && g.periodKey < currentKey;
+  });
+  if(overdue.length===0) return;
+  rollingOverGoals = true;
+  try{
+    for(const g of overdue){
+      await db.collection('users').doc(uid).collection('goals').doc(g.id).update({periodKey: currentPeriodKeyFor(g.periodType), rolledOver: true});
+    }
+  }finally{ rollingOverGoals = false; }
+}
 let todoMode = 'day';
 let todoDate = new Date();
 function todoPeriodKey(){
@@ -2209,10 +2277,15 @@ function renderTodo(){
   const [start,end] = todoPeriodRange();
   const key = todoPeriodKey();
 
-  const goals = DB.goals.filter(g=>g.periodType===todoMode && g.periodKey===key);
+  const goals = DB.goals.filter(g=>{
+    if(g.periodType===todoMode) return g.periodKey===key;
+    if(todoMode==='week' && g.periodType==='day') return g.periodKey>=start && g.periodKey<=end;
+    if(todoMode==='month' && (g.periodType==='day' || g.periodType==='week')) return g.periodKey>=start && g.periodKey<=end;
+    return false;
+  });
   const goalsWrap = document.getElementById('goalsList');
   goalsWrap.innerHTML = goals.length? goals.map(g=>`
-    <div class="linked-row"><span style="display:flex;align-items:center;gap:8px;"><input type="checkbox" data-goal-toggle="${g.id}" ${g.done?'checked':''}> <span style="${g.done?'text-decoration:line-through;color:var(--ink-dim);':''}">${esc(g.text)}</span></span><a href="#" data-goal-delete="${g.id}" style="color:var(--brick);text-decoration:none;">×</a></div>`).join('')
+    <div class="linked-row"><span style="display:flex;align-items:center;gap:8px;"><input type="checkbox" data-goal-toggle="${g.id}" ${g.done?'checked':''}> <span style="${g.done?'text-decoration:line-through;color:var(--ink-dim);':''}">${esc(g.text)}</span>${g.periodType!==todoMode? ` <span class="tag">${g.periodType}</span>`:''}</span><a href="#" data-goal-delete="${g.id}" style="color:var(--brick);text-decoration:none;">×</a></div>`).join('')
     : `<div style="font-size:12px;color:var(--ink-dim);">No goals set for this ${todoScopeWord()} yet.</div>`;
   goalsWrap.querySelectorAll('[data-goal-toggle]').forEach(el=>el.addEventListener('change', async ()=>{
     await db.collection('users').doc(uid).collection('goals').doc(el.dataset.goalToggle).update({done: el.checked});
